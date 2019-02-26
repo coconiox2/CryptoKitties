@@ -4,6 +4,8 @@ CryptoKitties
 A simple implementation of CryptoKitties with more tricks.
 
 More Info：[Ethereum-ERC721智能合约和Dapp实践--以太猫CryptoKitties的简单实现](https://blog.csdn.net/hello2mao/article/details/81241112)
+git
+
 
 ![image](/img/1.png)
 
