@@ -10,14 +10,14 @@
   "default_fight_center_things_num": 4,
   "default_users_things_num": 1,
   "default_accounts": {
-    "trade_center":"0x13379Ec77e75012DdE8b0B08B1ff446F4065f52A",
-    "breed_center":"0x5a9Ee3cC24262154C72CeefE719B1D2A25bC824d",
-    "fight_center":"0xCC81EEd7Fd2B87c242528e6cf463a79B6d026E88",
-    "feed_center":"0x74dc378B48E121d6C78594D736072da86e3Ad36c",
-    "upgrade_center":"0xe2431fEd750e673C615e5E65476D874fCb13EBB7",
+    "trade_center":"0xAb2b80eD1B91f1B32204543902e1Ad72bA05E315",
+    "breed_center":"0x392bfbb916f609c633b12CbF903024A90e6A85dB",
+    "fight_center":"0x6712f518f022bD874761Cc5e147e9393a43060D7",
+    "feed_center":"0xe585E9AB4C39180550016F058DcC74624A0aCaBe",
+    "upgrade_center":"0xC81367C94e4426a22CD551431c86Bb395371DB51",
     "users":[
-      "0xed5cF228Eb4508Acc9F1fe6626087E8ACA31d10e",
-      "0x1C64f8Ea7BebdbfF58b4397d408c4928914AFD2A"
+      "0x9aD46dB35Dbc063FD46C3aCAA4D2153EFc74F86C",
+      "0x2716eA6cF11c7Bdb4F611C447c2bC207B20987fd"
     ]
   },
   "level_up_fee":"1"
