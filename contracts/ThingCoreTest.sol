@@ -116,7 +116,7 @@ contract DataFactory is Ownable{
 		//////record on  blockchain.
 		uint id = datas.push(_data) - 1;
 		dataToOwner[id] = msg.sender;
-		ownerThingCount[msg.sender]++;
+		ownerDataCount[msg.sender]++;
 
 		/////Notification
 		NewData(msg.sender,_name,_type,_dataID,_dataPrice,_usageMode);
@@ -130,6 +130,12 @@ contract DataFactory is Ownable{
 contract DataHelper is DataFactory{
 	//////////////external interface
 	/////////////returns the data array of the corresponding owner.
+	
+ 	function withdraw() external onlyOwner {
+        owner.transfer(this.balance);
+    }
+
+	////////////fanhui geidingde owner de duiying de shuju IDs
 	function getDatasByOwner (address _owner) external view returns(uint[]){
 		uint[] memory result = new uint[](ownerDataCount[_owner]);
 		uint counter = 0;
@@ -141,5 +147,70 @@ contract DataHelper is DataFactory{
 		}
 		return result;
 	}
+	
+	/////////external interface
+	/////////fanhui duiying ID de shujuxinxi
+
+	fuction getData(uint _dataID) public view returns(
+		string name,
+		string type,
+		uint dataPrice,
+		string _usageMode){
+		Data storage data = datas[_dataID];
+		name = this.name;
+		type = this.type;
+		dataPrice = this.dataPrice;
+		usageMode = this.usageMode;
+	}
+}
+
+
+//////////ERC721 Impl
+contract DataCore is DataHelper, ERC721 {
+	
+	using SafeMath for uint256;
+
+	mapping (uint => address) dataApprovals;
+
+	// ERC721 impl
+	// return dataCount
+    function balanceOf(address _owner) public view returns (uint256 _balance) {
+        return ownerThingCount[_owner];
+    }
+
+    // ERC721 impl
+    function ownerOf(uint256 _tokenId) public view returns (address _owner) {
+        return thingToOwner[_tokenId];
+    }
+
+    function _transfer(address _from, address _to, uint256 _tokenId) private {
+        ownerDataCount[_to] = ownerDataCount[_to].add(1);
+        ownerDataCount[_from] = ownerDataCount[_from].sub(1);
+        dataToOwner[_tokenId] = _to;
+        Transfer(_from, _to, _tokenId);
+    }
+
+    // ERC721 impl
+    function transfer(address _to, uint256 _tokenId) public onlyOwnerOf(_tokenId) {
+        _transfer(msg.sender, _to, _tokenId);
+    }
+
+    // ERC721 impl
+    function approve(address _to, uint256 _tokenId) public onlyOwnerOf(_tokenId) {
+        thingApprovals[_tokenId] = _to;
+        Approval(msg.sender, _to, _tokenId);
+    }
+
+    // ERC721 impl
+    function takeOwnership(uint256 _tokenId) public {
+        require(thingApprovals[_tokenId] == msg.sender);
+        address owner = ownerOf(_tokenId);
+        _transfer(owner, msg.sender, _tokenId);
+    }
+
+    function buyThing(uint _thingId) public payable {
+        address owner = thingToOwner[_thingId];
+        _transfer(owner, msg.sender, _thingId);
+    }
 	
 }

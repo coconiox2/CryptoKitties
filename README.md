@@ -73,3 +73,18 @@ License
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
+
+
+
+
+
+
+///////////////////////////////////////////yqDataTransfer
+DataFactory合约中的_offerData函数是平台自己提供数据 供app.js中初始化界面使用的样例数据
+DataHelper合约中的getDatasByOwner函数是根据owner返回该owner对应的数据ID
+		 getData函数是根据数据ID得到数据的名字、类型、数据价格，数据的使用方式
+DataCore合约中的balanceOf函数是根据owner的地址得到该地址拥有的数据的总份数
+		 ownerOf函数是根据数据ID返回数据拥有者的地址
+		 _transfer函数是平台将数据的所有权从数据所有者转移到数据需求者
+		 transfer函数是任何用户都可以将自己的拥有的数据的所有权转移给数据需求者//我这里应该不需要
