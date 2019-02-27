@@ -268,7 +268,7 @@ contract ThingAttack is ThingUpgrade {
 
 /// 辅助合约
 contract ThingHelper is ThingAttack {
-
+///////////////////////////////////////////////////////////////shawanyierazheshi
     function withdraw() external onlyOwner {
         owner.transfer(this.balance);
     }

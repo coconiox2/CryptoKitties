@@ -66,3 +66,80 @@ contract Ownable{
 	}
 	
 }
+
+/////////////
+/////////////below is thing contract
+/////////////
+
+contract DataFactory is Ownable{
+	using SafeMath for uint256;
+
+	/////Notification event after uploading a Data.
+	event NewData(address _from, string _name, string _type, uint _dataID, uint _dataPrice, string _usageMode);
+	/////log 
+	event LogStatus(address _from,string log);
+
+	uint dataIDScale = 100000;
+
+	struct Data{
+		string name;
+		string type;
+		uint dataID;
+		uint dataPrice;
+		string usageMode;
+	}
+
+	Data[] public datas;
+
+	//////_dataID <==> _owner
+	mapping (uint => address) public dataToOwner;
+	//////_owner <==> _dataCount
+	mapping (address => uint) ownerDataCount;
+
+/*	function _generateRandomDataID (string _str) internal view returns(uint){
+		uint rand = uint(keccak256(_str));
+		return rand % dataIDScale;
+	}
+*/	
+
+	function _offerData(string _name, string _type, uint _dataID,uint _dataPrice,string _usageMode) public{
+		require (msg.sender != address(0));
+		
+		//////Configure a default data.
+		Data memory _data;
+		_data.name = _name;
+		_data.type = _type;
+		_data.dataID = _dataID;
+		_data.dataPrice = _dataPrice;
+		_data.usageMode = _usageMode;
+		
+		//////record on  blockchain.
+		uint id = datas.push(_data) - 1;
+		dataToOwner[id] = msg.sender;
+		ownerThingCount[msg.sender]++;
+
+		/////Notification
+		NewData(msg.sender,_name,_type,_dataID,_dataPrice,_usageMode);
+	}
+	
+}
+
+/**
+ * The DataHelper contract 
+ */
+contract DataHelper is DataFactory{
+	//////////////external interface
+	/////////////returns the data array of the corresponding owner.
+	function getDatasByOwner (address _owner) external view returns(uint[]){
+		uint[] memory result = new uint[](ownerDataCount[_owner]);
+		uint counter = 0;
+		for(uint i = 0; i < datas.length; i++){
+			if(dataToOwner(i) == _owner){
+				result[counter] = i;
+				counter++;
+			}
+		}
+		return result;
+	}
+	
+}
