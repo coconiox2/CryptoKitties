@@ -79,7 +79,7 @@ contract DataFactory is Ownable{
 	/////log 
 	event LogStatus(address _from,string log);
 
-	uint dataIDScale = 100000;
+	uint dataIDScale = 1000;
 
 	struct Data{
 		string name;
@@ -96,20 +96,22 @@ contract DataFactory is Ownable{
 	//////_owner <==> _dataCount
 	mapping (address => uint) ownerDataCount;
 
-/*	function _generateRandomDataID (string _str) internal view returns(uint){
+	function _generateRandomDataID (string _str) internal view returns(uint){
 		uint rand = uint(keccak256(_str));
 		return rand % dataIDScale;
 	}
-*/	
+	
 
-	function _offerData(string _name, string _type, uint _dataID,uint _dataPrice,string _usageMode) public{
+	function _offerData(string _name, string _type,uint _dataPrice,string _usageMode) internal{
 		require (msg.sender != address(0));
 		
+		
+
 		//////Configure a default data.
 		Data memory _data;
 		_data.name = _name;
 		_data.type = _type;
-		_data.dataID = _dataID;
+		_data.dataID = _generateRandomDataID(_name);
 		_data.dataPrice = _dataPrice;
 		_data.usageMode = _usageMode;
 		
@@ -119,15 +121,35 @@ contract DataFactory is Ownable{
 		ownerDataCount[msg.sender]++;
 
 		/////Notification
-		NewData(msg.sender,_name,_type,_dataID,_dataPrice,_usageMode);
+		NewData(msg.sender,_name,_type,_data.dataID,_dataPrice,_usageMode);
 	}
 	
+}
+
+//////////shujushangchuanxitong
+contract DataUpload is DataFactory{
+	function dataUpload(string _name, string _type, uint _dataPrice,string _usageMode) public{
+		Data memory _data;
+		_data.name = _name;
+		_data.type = _type;
+		_data.dataID = _generateRandomDataID(_name);
+		_data.dataPrice = _dataPrice;
+		_data.usageMode = _usageMode;
+		
+		//////record on  blockchain.
+		uint id_1 = datas.push(_data) - 1;
+		dataToOwner[id_1] = msg.sender;
+		ownerDataCount[msg.sender]++;
+
+		/////Notification
+		NewData(msg.sender,_name,_type,_data.dataID,_dataPrice,_usageMode);
+	}
 }
 
 /**
  * The DataHelper contract 
  */
-contract DataHelper is DataFactory{
+contract DataHelper is DataUpload{
 	//////////////external interface
 	/////////////returns the data array of the corresponding owner.
 	
