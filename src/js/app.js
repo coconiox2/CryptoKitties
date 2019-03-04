@@ -10,28 +10,24 @@ App = {
 
     init: function () {
         // 初始化配置
-        $.getJSON('../config.json', function (data) {
-            // read from config.json
-            App.config.debug = data.debug;
-            App.config.dappName = data.dapp_name;
-            App.config.rpc = data.rpc;
-            App.config.networkId = data.network_id;
-            App.config.imgUrl = data.img_url;
-            App.config.imgCount = data.img_count;
-            App.config.defaultTradeCenterThingsNum = data.default_trade_center_things_num;
-            App.config.defaultUploadCenterThingsNum = data.default_upload_center_things_num;
-            //App.config.defaultFightCenterThingsNum = data.default_fight_center_things_num;
-            App.config.defaultUsersThingsNum = data.default_users_things_num;
-            App.config.defaultTradeCenterAccount = data.default_accounts.trade_center;
-            App.config.defaultUploadCenterAccount = data.default_accounts.upload_center;
-            //App.config.defaultFightCenterAccount = data.default_accounts.fight_center;
-            //App.config.defaultFeedCenterAccount = data.default_accounts.feed_center;
-            //App.config.defaultUpgradeCenterAccount = data.default_accounts.upgrade_center;
-            App.config.defaultUsersAccount = data.default_accounts.users;
-            //App.config.levelUpFee = data.level_up_fee;
+        $.getJSON('../config.json', function (thing) {
+            App.config.debug = thing.debug;
+            App.config.dappName = thing.dapp_name;
+            App.config.rpc = thing.rpc;
+            App.config.networkId = thing.network_id;
+            App.config.imgUrl = thing.img_url;
+            App.config.imgCount = thing.img_count;
+
+            App.config.defaultTradeCenterThingsNum = thing.default_trade_center_things_num;
+            App.config.defaultUploadCenterThingsNum = thing.default_upload_center_things_num;
+            App.config.defaultUsersThingsNum = thing.default_users_things_num;
+
+            App.config.defaultTradeCenterAccount = thing.default_accounts.trade_center;
+            App.config.defaultUploadCenterAccount = thing.default_accounts.upload_center;
+            App.config.defaultUsersAccount = thing.default_accounts.users;
 
             // init global var
-            App.currentAccount = data.default_accounts.users[0];
+            App.currentAccount = thing.default_accounts.users[0];
             $('#current-account').text(App.currentAccount);
             App.currentTab = App.tabs[0];
         }).then(function () {
@@ -48,13 +44,13 @@ App = {
 
     // 初始化合约相关
     initContract: function () {
-        $.getJSON('../build/contracts/ThingCore.json', function (data) {
+        $.getJSON('../build/contracts/ThingCore.json', function (thing) {
             if (App.config.debug) {
-                console.log('Contract abi: ' + JSON.stringify(data.abi));
-                console.log('Contract networks: ' + JSON.stringify(data.networks));
+                console.log('Contract abi: ' + JSON.stringify(thing.abi));
+                console.log('Contract networks: ' + JSON.stringify(thing.networks));
             }
             // Get the necessary contract artifact file and instantiate it with truffle-contract
-            App.contracts.ThingCore = TruffleContract(data);
+            App.contracts.ThingCore = TruffleContract(thing);
             // Set network id
             App.contracts.ThingCore.setNetwork(App.config.networkId);
             // Set the provider for our contract
@@ -109,7 +105,7 @@ App = {
                         case App.config.defaultTradeCenterAccount:
                             App.loadThing(result.args.thingId, App.tabs[0]);
                             break;
-                        case App.config.defaultBreedCenterAccount:
+                        case App.config.defaultUploadCenterAccount:
                             App.loadThing(result.args.thingId, App.tabs[1]);
                             break;
                         
@@ -124,7 +120,7 @@ App = {
             App.initAccount();
             App.initThingFactory(App.config.defaultTradeCenterAccount, App.config.defaultTradeCenterThingsNum);
             App.initThingFactory(App.config.defaultUploadCenterAccount, App.config.defaultUploadCenterThingsNum);
-            //App.initThingFactory(App.config.defaultFightCenterAccount, App.config.defaultFightCenterThingsNum);
+
             for (let i = 0; i < App.config.defaultUsersAccount.length; i++) {
                 App.initThingFactory(App.config.defaultUsersAccount[i], App.config.defaultUsersThingsNum);
             }
@@ -204,6 +200,225 @@ App = {
             console.log('handleBreedCenter error: ' + err.message);
         });
     },
+
+    // 我的
+    handleMyCenter: function () {
+        App.currentTab = App.tabs[2];
+        $('#play-hint').hide();
+        $('#thingsRow').empty();
+        App.contracts.ThingCore.deployed().then(function (instance) {
+            return instance.getThingsByOwner(App.currentAccount);
+        }).then(function (thingIds) {
+            for (let i = 0; i < thingIds.length; i++) {
+                App.loadThing(thingIds[i], App.tabs[2]);
+            }
+        }).catch(function (err) {
+            console.log('updateUIInTradeCenter error: ' + err.message);
+        });
+    },
+
+    handleChangeAccount: function () {
+        console.log("handleChangeAccount");
+        App.currentAccount = $(this).html();
+        console.log("handleChangeAccount text: " + $(this).html());
+        $('#current-account').text(App.currentAccount);
+        App.updateBalance();
+    },
+
+    // 购买
+    handleBuyThing: function () {
+        if (parseInt($(this).attr('thing-price')) > App.currentAccountBalance) {
+            alert("当前账户余额不足");
+        }
+        let thingId = $(this).attr('thing-id');
+        let thingPrice = $(this).attr('thing-price');
+        $("[thing-item-id="+thingId+"]").find('.btn-bug').text('购买中').attr('disabled', true);
+        App.contracts.ThingCore.deployed().then(function (instance) {
+            if (App.config.debug) {
+                console.log(App.currentAccount + ' buy thing, thingId: ' + thingId + ", thingPrice: " + thingPrice);
+            }
+            web3.eth.sendTransaction({from: App.currentAccount, to: App.config.defaultTradeCenterAccount,
+                value:web3.toWei(thingPrice,'ether')});
+            return instance.buyThing(thingId, {from: App.currentAccount});
+        }).then(function (result) {
+            if (App.config.debug) {
+                console.log('handleBuyThing result = ' + JSON.stringify(result));
+            }
+        }).catch(function (err) {
+            console.log(err.message);
+        });
+    },
+
+    // 出售
+    handleSellThing: function () {
+        $(this).text('出售中').attr('disabled', true);
+        let thingId = $(this).attr('thing-id');
+        let thingPrice = $(this).attr('thing-price');
+        App.contracts.ThingCore.deployed().then(function (instance) {
+            if (App.config.debug) {
+                console.log(App.currentAccount + ' sell thing, thingId: ' + thingId + ", thingPrice: " + thingPrice);
+            }
+            web3.eth.sendTransaction({from: App.config.defaultTradeCenterAccount, to: App.currentAccount,
+                value:web3.toWei(thingPrice,'ether')});
+            return instance.buyThing(thingId, {from: App.config.defaultTradeCenterAccount});
+        }).then(function (result) {
+            if (App.config.debug) {
+                console.log('handleBuyThing result = ' + JSON.stringify(result));
+            }
+        }).catch(function (err) {
+            console.log(err.message);
+        });
+    },
+
+    handleUploadThing: function(){
+
+    },
+
+    bindEvents: function () {
+        $(document).on('click', '.menu-item', App.handleChangeAccount);
+        $('#trade-center').on('click', App.handleTradeCenter);
+        $('#upload-center').on('click', App.handleUploadCenter);
+        $('#my-center').on('click', App.handleMyCenter);
+
+        $(document).on('click', '.btn-buy', App.handleBuyThing);
+        $(document).on('click', '.btn-sell', App.handleSellThing);
+        $(document).on('click', '.btn-upload', App.handleUploadThing);
+    },
+
+    updateBalance: function () {
+        let balance = web3.fromWei(web3.eth.getBalance(App.currentAccount), "ether");
+        App.currentAccountBalance = balance;
+        $('#account-balance').text(balance + " ETH");
+    },
+
+
+    loadThing: function(thingId, targetTab) {
+        App.contracts.ThingCore.deployed().then(function (instance) {
+            return instance.getThing(parseInt(thingId));
+        }).then(function (thing) {
+            if ($('#page-hint').is(':visible')) {
+                $('#pageTitle').text(App.config.dappName);
+                $('#page-hint').hide();
+                $('#page-tabs').show();
+                $('#page-head').show();
+            }
+            let name = thing[0];
+            let price = thing[1];
+            let thingType = thing[2];
+            let size = thing[3];
+            
+            let url = App.config.imgUrl + (thing[1] % App.config.imgCount);
+            if (App.config.debug) {
+                console.log("Image res: " + url);
+            }
+            $.get(url, function(thing) {
+                console.log(JSON.stringify(thing));
+                let thingsRow = $('#thingsRow');
+                let thingTemplate = $('#thing-template');
+                thingTemplate.find('.thing-template-body').addClass('thing-item');
+                thingTemplate.find('.thing-template-body').attr('thing-item-id', thingId);
+                thingTemplate.find('.panel-title').text("名字：" + name);
+                thingTemplate.find('img').attr('src', thing.image_url);
+                thingTemplate.find('.thing-id').text(thingId);
+                thingTemplate.find('.thing-price').text(price);
+                thingTemplate.find('.thing-thingType').text(thingType);
+                thingTemplate.find('.thing-size').text(size);
+            /*    let timestamp=new Date().getTime() / 1000;
+                if (timestamp >= readyTime) {
+                    thingTemplate.find('.thing-ready-time').text(0);
+                } else {
+                    thingTemplate.find('.thing-ready-time').text(parseInt((readyTime - timestamp) / 60));
+                }
+                thingTemplate.find('.thing-fight-win').text(winCount);
+                thingTemplate.find('.thing-fight-loss').text(lossCount);
+                let attr = App.generateAttr(thing[2]);
+                thingTemplate.find('.thing-head').text(attr.headChoice);
+                thingTemplate.find('.thing-eye').text(attr.eyeChoice);
+                thingTemplate.find('.thing-skin').text(attr.skinChoice);
+                thingTemplate.find('.thing-up').text(attr.upChoice);
+                thingTemplate.find('.thing-down').text(attr.downChoice);*/
+                thingTemplate.find('.btn-buy').attr('thing-id', thingId);
+                thingTemplate.find('.btn-buy').attr('thing-price', price);
+                thingTemplate.find('.btn-sell').attr('thing-id', thingId);
+                thingTemplate.find('.btn-sell').attr('thing-price', price);
+
+                ////////////zhongyao///////////////////thingTemplate.find('.btn-upload').attr('thing-price', price);
+
+                /*thingTemplate.find('.btn-upgrade').attr('thing-id', thingId);
+                thingTemplate.find('.btn-breed').attr('thing-id', thingId);
+                thingTemplate.find('.btn-fight').attr('thing-id', thingId);
+                thingTemplate.find('.btn-feed').attr('thing-id', thingId);*/
+                if (App.currentTab !== targetTab) {
+                    return;
+                }
+                switch (App.currentTab) {
+                    case App.tabs[0]:
+                        thingTemplate.find('.btn-upload').hide();
+                        thingTemplate.find('.btn-buy').show();
+                        thingTemplate.find('.btn-sell').hide();
+                        
+                        thingTemplate.find('.offerID').hide();
+                        thingTemplate.find('.offerPrice').hide();
+                        thingTemplate.find('.offerSize').hide();
+                        thingTemplate.find('.offerType').hide();
+                        thingTemplate.find('.offerIntro').hide();
+                        
+                        break;
+                    case App.tabs[1]:
+                        thingTemplate.find('.thing-id').text("");
+                        thingTemplate.find('.thing-price').text("");
+                        thingTemplate.find('.thing-thingType').text("");
+                        thingTemplate.find('.thing-size').text("");
+                        thingTemplate.find('.thing-intro').text("");
+
+                        thingTemplate.find('.btn-upload').show();
+                        thingTemplate.find('.btn-buy').hide();
+                        thingTemplate.find('.btn-sell').hide();
+                        
+                        thingTemplate.find('.offerID').show();
+                        thingTemplate.find('.offerPrice').show();
+                        thingTemplate.find('.offerSize').show();
+                        thingTemplate.find('.offerType').show();
+                        thingTemplate.find('.offerIntro').show();
+                        
+                        break;
+                    case App.tabs[2]:
+                        thingTemplate.find('.btn-upload').hide();
+                        thingTemplate.find('.btn-buy').hide();
+                        thingTemplate.find('.btn-sell').show();
+
+                        thingTemplate.find('.offerID').hide();
+                        thingTemplate.find('.offerPrice').hide();
+                        thingTemplate.find('.offerSize').hide();
+                        thingTemplate.find('.offerType').hide();
+                        thingTemplate.find('.offerIntro').hide();
+
+                        break;
+                    
+                }
+                thingsRow.append(thingTemplate.html());
+            });
+        }).catch(function (err) {
+            console.log('loadThing error: ' + err.message);
+        });
+    },
+    
+    removeThing: function (thingId, targetTab) {
+        if (App.currentTab !== targetTab) {
+            return;
+        }
+        $("[thing-item-id="+thingId+"]").remove();
+    }
+
+};
+
+$(function () {
+    $(window).load(function () {
+        App.init();
+    });
+});
+
+
 /*
     // 战斗中心
     handleFightCenter: function () {
@@ -253,53 +468,8 @@ App = {
         });
     },
 */
-    // 我的
-    handleMyCenter: function () {
-        App.currentTab = App.tabs[2];
-        $('#play-hint').hide();
-        $('#thingsRow').empty();
-        App.contracts.ThingCore.deployed().then(function (instance) {
-            return instance.getThingsByOwner(App.currentAccount);
-        }).then(function (thingIds) {
-            for (let i = 0; i < thingIds.length; i++) {
-                App.loadThing(thingIds[i], App.tabs[2]);
-            }
-        }).catch(function (err) {
-            console.log('updateUIInTradeCenter error: ' + err.message);
-        });
-    },
 
-    handleChangeAccount: function () {
-        console.log("handleChangeAccount");
-        App.currentAccount = $(this).html();
-        console.log("handleChangeAccount text: " + $(this).html());
-        $('#current-account').text(App.currentAccount);
-        App.updateBalance();
-    },
 
-    // 购买
-    handleBuyThing: function () {
-        if (parseInt($(this).attr('thing-price')) > App.currentAccountBalance) {
-            alert("当前账户余额不足");
-        }
-        let thingId = $(this).attr('thing-id');
-        let thingPrice = $(this).attr('thing-price');
-        $("[thing-item-id="+thingId+"]").find('.btn-bug').text('购买中').attr('disabled', true);
-        App.contracts.ThingCore.deployed().then(function (instance) {
-            if (App.config.debug) {
-                console.log(App.currentAccount + ' buy thing, thingId: ' + thingId + ", thingPrice: " + thingPrice);
-            }
-            web3.eth.sendTransaction({from: App.currentAccount, to: App.config.defaultTradeCenterAccount,
-                value:web3.toWei(thingPrice,'ether')});
-            return instance.buyThing(thingId, {from: App.currentAccount});
-        }).then(function (result) {
-            if (App.config.debug) {
-                console.log('handleBuyThing result = ' + JSON.stringify(result));
-            }
-        }).catch(function (err) {
-            console.log(err.message);
-        });
-    },
 /*
     // 繁育
     handleBreed: function () {
@@ -444,51 +614,8 @@ App = {
         });
     },
 */
-    // 出售
-    handleSellThing: function () {
-        $(this).text('出售中').attr('disabled', true);
-        let thingId = $(this).attr('thing-id');
-        let thingPrice = $(this).attr('thing-price');
-        App.contracts.ThingCore.deployed().then(function (instance) {
-            if (App.config.debug) {
-                console.log(App.currentAccount + ' sell thing, thingId: ' + thingId + ", thingPrice: " + thingPrice);
-            }
-            web3.eth.sendTransaction({from: App.config.defaultTradeCenterAccount, to: App.currentAccount,
-                value:web3.toWei(thingPrice,'ether')});
-            return instance.buyThing(thingId, {from: App.config.defaultTradeCenterAccount});
-        }).then(function (result) {
-            if (App.config.debug) {
-                console.log('handleBuyThing result = ' + JSON.stringify(result));
-            }
-        }).catch(function (err) {
-            console.log(err.message);
-        });
-    },
 
-    bindEvents: function () {
-        $(document).on('click', '.menu-item', App.handleChangeAccount);
-        $('#trade-center').on('click', App.handleTradeCenter);
-        $('#breed-center').on('click', App.handleUploadCenter);
-        //$('#fight-center').on('click', App.handleFightCenter);
-        //$('#feed-center').on('click', App.handleFeedCenter);
-        //$('#upgrade-center').on('click', App.handleUpgradeCenter);
-        $('#my-center').on('click', App.handleMyCenter);
-
-        $(document).on('click', '.btn-bug', App.handleBuyThing);
-        //$(document).on('click', '.btn-upgrade', App.handleUpgradeThing);
-        $(document).on('click', '.btn-sell', App.handleSellThing);
-        //$(document).on('click', '.btn-breed', App.handleBreed);
-        //$(document).on('click', '.btn-fight', App.handleFight);
-        //$(document).on('click', '.btn-feed', App.handleFeed);
-    },
-
-    updateBalance: function () {
-        let balance = web3.fromWei(web3.eth.getBalance(App.currentAccount), "ether");
-        App.currentAccountBalance = balance;
-        $('#account-balance').text(balance + " ETH");
-    },
-
-    generateAttr: function (dna) {
+/*    generateAttr: function (dna) {
 
         let dnaStr = String(dna);
         // 如果dna少于16位,在它前面用0补上
@@ -513,170 +640,4 @@ App = {
 
     },
 
-    loadThing: function(thingId, targetTab) {
-        App.contracts.ThingCore.deployed().then(function (instance) {
-            return instance.getThing(parseInt(thingId));
-        }).then(function (thing) {
-            if ($('#page-hint').is(':visible')) {
-                $('#pageTitle').text(App.config.dappName);
-                $('#page-hint').hide();
-                $('#page-tabs').show();
-                $('#page-head').show();
-            }
-            let name = thing[0];
-            let price = thing[1];
-            let dna = thing[2];
-            let level = thing[3];
-            let readyTime = thing[4];
-            let generation = thing[5];
-            let winCount = thing[6];
-            let lossCount = thing[7];
-            let url = App.config.imgUrl + (thing[2] % App.config.imgCount);
-            if (App.config.debug) {
-                console.log("Image res: " + url);
-            }
-            $.get(url, function(data) {
-                console.log(JSON.stringify(thing));
-                let thingsRow = $('#thingsRow');
-                let thingTemplate = $('#thing-template');
-                thingTemplate.find('.thing-template-body').addClass('thing-item');
-                thingTemplate.find('.thing-template-body').attr('thing-item-id', thingId);
-                thingTemplate.find('.panel-title').text("名字：" + name);
-                thingTemplate.find('img').attr('src', data.image_url);
-                thingTemplate.find('.thing-id').text(thingId);
-                thingTemplate.find('.thing-price').text(price);
-                thingTemplate.find('.thing-level').text(level);
-                thingTemplate.find('.thing-generation').text(generation);
-                let timestamp=new Date().getTime() / 1000;
-                if (timestamp >= readyTime) {
-                    thingTemplate.find('.thing-ready-time').text(0);
-                } else {
-                    thingTemplate.find('.thing-ready-time').text(parseInt((readyTime - timestamp) / 60));
-                }
-                thingTemplate.find('.thing-fight-win').text(winCount);
-                thingTemplate.find('.thing-fight-loss').text(lossCount);
-                let attr = App.generateAttr(thing[2]);
-                thingTemplate.find('.thing-head').text(attr.headChoice);
-                thingTemplate.find('.thing-eye').text(attr.eyeChoice);
-                thingTemplate.find('.thing-skin').text(attr.skinChoice);
-                thingTemplate.find('.thing-up').text(attr.upChoice);
-                thingTemplate.find('.thing-down').text(attr.downChoice);
-                thingTemplate.find('.btn-bug').attr('thing-id', thingId);
-                thingTemplate.find('.btn-bug').attr('thing-price', price);
-                thingTemplate.find('.btn-sell').attr('thing-id', thingId);
-                thingTemplate.find('.btn-sell').attr('thing-price', price);
-                thingTemplate.find('.btn-upgrade').attr('thing-id', thingId);
-                thingTemplate.find('.btn-breed').attr('thing-id', thingId);
-                thingTemplate.find('.btn-fight').attr('thing-id', thingId);
-                thingTemplate.find('.btn-feed').attr('thing-id', thingId);
-                if (App.currentTab !== targetTab) {
-                    return;
-                }
-                switch (App.currentTab) {
-                    case App.tabs[0]:
-                        thingTemplate.find('.btn-upload').hide();
-                        thingTemplate.find('.btn-bug').show();
-                        thingTemplate.find('.btn-sell').hide();
-                        thingTemplate.find('.btn-upgrade').hide();
-                        thingTemplate.find('.btn-breed').hide();
-                        thingTemplate.find('.btn-fight').hide();
-                        thingTemplate.find('.offerID').hide();
-                        thingTemplate.find('.offerPrice').hide();
-                        thingTemplate.find('.offerSize').hide();
-                        thingTemplate.find('.offerType').hide();
-                        thingTemplate.find('.offerIntro').hide();
-                        thingTemplate.find('.btn-feed').hide();
-                        thingTemplate.find('.kitty-id').hide();
-                        break;
-                    case App.tabs[1]:
-                        thingTemplate.find('.thing-id').text("");
-                        thingTemplate.find('.thing-price').text("");
-                        thingTemplate.find('.thing-level').text("");
-                        thingTemplate.find('.thing-generation').text("");
-                        
-                        thingTemplate.find('.btn-upload').show();
-                        thingTemplate.find('.btn-bug').hide();
-                        thingTemplate.find('.btn-sell').hide();
-                        thingTemplate.find('.btn-upgrade').hide();
-                        thingTemplate.find('.btn-breed').show();
-                        thingTemplate.find('.btn-fight').hide();
-                        thingTemplate.find('.offerID').show();
-                        thingTemplate.find('.offerPrice').show();
-                        thingTemplate.find('.offerSize').show();
-                        thingTemplate.find('.offerType').show();
-                        thingTemplate.find('.offerIntro').show();
-                        thingTemplate.find('.btn-feed').hide();
-                        thingTemplate.find('.kitty-id').hide();
-                        break;
-                    case App.tabs[2]:
-                        thingTemplate.find('.btn-upload').hide();
-                        thingTemplate.find('.btn-bug').hide();
-                        thingTemplate.find('.btn-sell').show();
-                        thingTemplate.find('.btn-upgrade').hide();
-                        thingTemplate.find('.btn-breed').hide();
-                        thingTemplate.find('.btn-fight').show();
-                        thingTemplate.find('.offerID').hide();
-                        thingTemplate.find('.offerPrice').hide();
-                        thingTemplate.find('.offerSize').hide();
-                        thingTemplate.find('.offerType').hide();
-                        thingTemplate.find('.offerIntro').hide();
-                        thingTemplate.find('.btn-feed').hide();
-                        thingTemplate.find('.kitty-id').hide();
-                        break;
-                    case App.tabs[3]:
-                        thingTemplate.find('.btn-bug').hide();
-                        thingTemplate.find('.btn-sell').hide();
-                        thingTemplate.find('.btn-upgrade').hide();
-                        thingTemplate.find('.btn-breed').hide();
-                        thingTemplate.find('.btn-fight').hide();
-                        thingTemplate.find('.my-id').hide();
-                        thingTemplate.find('.btn-feed').show();
-                        thingTemplate.find('.kitty-id').hide();
-                        break;
-                    case App.tabs[4]:
-                        thingTemplate.find('.btn-bug').hide();
-                        thingTemplate.find('.btn-sell').hide();
-                        thingTemplate.find('.btn-upgrade').show();
-                        thingTemplate.find('.btn-breed').hide();
-                        thingTemplate.find('.btn-fight').hide();
-                        thingTemplate.find('.my-id').hide();
-                        thingTemplate.find('.btn-feed').hide();
-                        thingTemplate.find('.kitty-id').hide();
-                        break;
-                    case App.tabs[5]:
-                        thingTemplate.find('.btn-upload').hide();
-                        thingTemplate.find('.btn-bug').hide();
-                        thingTemplate.find('.btn-sell').show();
-                        thingTemplate.find('.btn-upgrade').hide();
-                        thingTemplate.find('.btn-breed').hide();
-                        thingTemplate.find('.btn-fight').hide();
-                        thingTemplate.find('.offerID').hide();
-                        thingTemplate.find('.offerPrice').hide();
-                        thingTemplate.find('.offerSize').hide();
-                        thingTemplate.find('.offerType').hide();
-                        thingTemplate.find('.offerIntro').hide();
-                        thingTemplate.find('.btn-feed').hide();
-                        thingTemplate.find('.kitty-id').hide();
-                        break;
-                }
-                thingsRow.append(thingTemplate.html());
-            });
-        }).catch(function (err) {
-            console.log('loadThing error: ' + err.message);
-        });
-    },
-    
-    removeThing: function (thingId, targetTab) {
-        if (App.currentTab !== targetTab) {
-            return;
-        }
-        $("[thing-item-id="+thingId+"]").remove();
-    }
-
-};
-
-$(function () {
-    $(window).load(function () {
-        App.init();
-    });
-});
+*/

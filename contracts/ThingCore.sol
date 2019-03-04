@@ -75,72 +75,170 @@ contract ThingFactory is Ownable {
 
     using SafeMath for uint256;
 
+    modifier onlyOwnerOf(uint _thingId) {
+        require(msg.sender == thingToOwner[_thingId]);
+        _;
+    }
+
     // 生产一个产品后的通知事件
-    event NewThing(address _from, uint thingId, string name, uint dna);
+    event NewThing(address _from, uint thingId, string name, uint price,string thingType,uint size);
     // 日志事件
     event LogStatus(address _from, string log);
 
     // 基因位数
-    uint dnaDigits = 16;
-    uint dnaModulus = 10 ** dnaDigits;
+    //uint dnaDigits = 16;
+    //uint dnaModulus = 10 ** dnaDigits;
     // 技能冷却时间
-    uint cooldownTime = 1 days;
+    //uint cooldownTime = 1 days;
 
     struct Thing {
         string name;       // 名字
         uint price;        // 价格
-        uint dna;          // DNA
-        uint32 level;      // 等级
-        uint32 readyTime;  // 技能冷却
-        uint32 generation; // 代数
-        uint16 winCount;   // 战斗胜利次数
-        uint16 lossCount;  // 战斗失败次数
+        string thingType;        //leixing
+        uint size;          //daxiao
+        uint id;
     }
 
     Thing[] public things;
-
+    string []thingTypes = ["txt","form"];
     // _tokenId <==> _owner
     mapping (uint => address) public thingToOwner;
     // _owner <==> _tokenCount
     mapping (address => uint) ownerThingCount;
 
-    function _createThing(string _name, uint _dna, uint32 _generation) internal {
+    function _createThing(string _name, uint _price, string _thingType,uint _size) internal {
         require(msg.sender != address(0));
 
         // 配置默认产品
         Thing memory _thing;
         _thing.name = _name;
-        _thing.price = (_dna / 100) % 100;
-        _thing.dna = _dna;
-        _thing.level = uint32(1);
-        _thing.readyTime = uint32(now);
-        _thing.generation = _generation;
-        _thing.winCount = uint16(0);
-        _thing.lossCount = uint16(0);
+        _thing.price = _price;
+        _thing.thingType = _thingType;
+        _thing.size = _size;
 
         // 记录到区块链
         uint id = things.push(_thing) - 1;
+        _thing.id = id;
         thingToOwner[id] = msg.sender;
         ownerThingCount[msg.sender]++;
 
         // 通知事件
-        NewThing(msg.sender, id, _name, _dna);
+        NewThing(msg.sender, id, _name, _price, _thingType, _size);
     }
 
-    function _generateRandomDna(string _str) internal view returns (uint) {
+    function _generateRandomPrice(string _str) internal view returns (uint) {
         uint rand = uint(keccak256(_str));
-        return rand % dnaModulus;
+        return rand % 100;
+    }
+
+    function _generateRandomType(string _str) internal view returns (uint) {
+        uint rand = uint(keccak256(_str));
+        return rand % 2;
+    }
+
+    function _generateRandomSize(string _str) internal view returns (uint) {
+        uint rand = uint(keccak256(_str));
+        return rand % 18;
     }
 
     // 对外接口，用于生产产品
     function createRandomThing(string _name, uint _limit) public {
         require(ownerThingCount[msg.sender] <= _limit);
-        uint randDna = _generateRandomDna(_name);
-        randDna = randDna - randDna % 100;
-        _createThing(_name, randDna, uint32(0));
+        uint randPrice = _generateRandomPrice(_name);
+        uint randType = _generateRandomType(_name);
+        uint randSize = _generateRandomSize(_name);
+        _createThing(_name, randPrice, thingTypes[randType], randSize);
     }
 }
 
+
+
+
+/// 辅助合约
+contract ThingHelper is ThingFactory {
+///////////////////////////////////////////////////////////////shawanyierazheshi
+    function withdraw() external onlyOwner {
+        owner.transfer(this.balance);
+    }
+
+    // 对外接口，返回相应owner的产品Id数组
+    function getThingsByOwner(address _owner) external view returns(uint[]) {
+        uint[] memory result = new uint[](ownerThingCount[_owner]);
+        uint counter = 0;
+        for (uint i = 0; i < things.length; i++) {
+            if (thingToOwner[i] == _owner) {
+                result[counter] = i;
+                counter++;
+            }
+        }
+        return result;
+    }
+
+
+    // 对外接口，返回对应Id的产品
+    function getThing(uint _thingId) public view returns (
+        string name,
+        uint price,
+        string thingType,
+        uint size) {
+        Thing storage thing = things[_thingId];
+        name = thing.name;
+        price = thing.price;
+        thingType = thing.thingType;
+        size = thing.size;
+    }
+}
+
+/// ERC721 Impl
+contract ThingCore is ThingHelper, ERC721 {
+
+    using SafeMath for uint256;
+
+    mapping (uint => address) thingApprovals;
+
+    // ERC721 impl
+    function balanceOf(address _owner) public view returns (uint256 _balance) {
+        return ownerThingCount[_owner];
+    }
+
+    // ERC721 impl
+    function ownerOf(uint256 _tokenId) public view returns (address _owner) {
+        return thingToOwner[_tokenId];
+    }
+
+    function _transfer(address _from, address _to, uint256 _tokenId) private {
+        ownerThingCount[_to] = ownerThingCount[_to].add(1);
+        ownerThingCount[_from] = ownerThingCount[_from].sub(1);
+        thingToOwner[_tokenId] = _to;
+        Transfer(_from, _to, _tokenId);
+    }
+
+    // ERC721 impl
+    function transfer(address _to, uint256 _tokenId) public onlyOwnerOf(_tokenId) {
+        _transfer(msg.sender, _to, _tokenId);
+    }
+
+    // ERC721 impl
+    function approve(address _to, uint256 _tokenId) public onlyOwnerOf(_tokenId) {
+        thingApprovals[_tokenId] = _to;
+        Approval(msg.sender, _to, _tokenId);
+    }
+
+    // ERC721 impl
+    function takeOwnership(uint256 _tokenId) public {
+        require(thingApprovals[_tokenId] == msg.sender);
+        address owner = ownerOf(_tokenId);
+        _transfer(owner, msg.sender, _tokenId);
+    }
+
+    function buyThing(uint _thingId) public payable {
+        address owner = thingToOwner[_thingId];
+        _transfer(owner, msg.sender, _thingId);
+    }
+}
+
+
+/*
 /// 繁育&喂养系统
 contract ThingFeedAndBreed is ThingFactory {
 
@@ -266,92 +364,4 @@ contract ThingAttack is ThingUpgrade {
     }
 }
 
-/// 辅助合约
-contract ThingHelper is ThingAttack {
-///////////////////////////////////////////////////////////////shawanyierazheshi
-    function withdraw() external onlyOwner {
-        owner.transfer(this.balance);
-    }
-
-    // 对外接口，返回相应owner的产品Id数组
-    function getThingsByOwner(address _owner) external view returns(uint[]) {
-        uint[] memory result = new uint[](ownerThingCount[_owner]);
-        uint counter = 0;
-        for (uint i = 0; i < things.length; i++) {
-            if (thingToOwner[i] == _owner) {
-                result[counter] = i;
-                counter++;
-            }
-        }
-        return result;
-    }
-
-    // 对外接口，返回对应Id的产品
-    function getThing(uint _thingId) public view returns (
-        string name,
-        uint price,
-        uint dna,
-        uint32 level,
-        uint32 readyTime,
-        uint32 generation,
-        uint16 winCount,
-        uint16 lossCount) {
-        Thing storage thing = things[_thingId];
-        name = thing.name;
-        price = thing.price;
-        dna = thing.dna;
-        level = thing.level;
-        readyTime = thing.readyTime;
-        generation = thing.generation;
-        winCount = thing.winCount;
-        lossCount = thing.lossCount;
-    }
-}
-
-/// ERC721 Impl
-contract ThingCore is ThingHelper, ERC721 {
-
-    using SafeMath for uint256;
-
-    mapping (uint => address) thingApprovals;
-
-    // ERC721 impl
-    function balanceOf(address _owner) public view returns (uint256 _balance) {
-        return ownerThingCount[_owner];
-    }
-
-    // ERC721 impl
-    function ownerOf(uint256 _tokenId) public view returns (address _owner) {
-        return thingToOwner[_tokenId];
-    }
-
-    function _transfer(address _from, address _to, uint256 _tokenId) private {
-        ownerThingCount[_to] = ownerThingCount[_to].add(1);
-        ownerThingCount[_from] = ownerThingCount[_from].sub(1);
-        thingToOwner[_tokenId] = _to;
-        Transfer(_from, _to, _tokenId);
-    }
-
-    // ERC721 impl
-    function transfer(address _to, uint256 _tokenId) public onlyOwnerOf(_tokenId) {
-        _transfer(msg.sender, _to, _tokenId);
-    }
-
-    // ERC721 impl
-    function approve(address _to, uint256 _tokenId) public onlyOwnerOf(_tokenId) {
-        thingApprovals[_tokenId] = _to;
-        Approval(msg.sender, _to, _tokenId);
-    }
-
-    // ERC721 impl
-    function takeOwnership(uint256 _tokenId) public {
-        require(thingApprovals[_tokenId] == msg.sender);
-        address owner = ownerOf(_tokenId);
-        _transfer(owner, msg.sender, _tokenId);
-    }
-
-    function buyThing(uint _thingId) public payable {
-        address owner = thingToOwner[_thingId];
-        _transfer(owner, msg.sender, _thingId);
-    }
-}
+*/
