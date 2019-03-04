@@ -270,8 +270,39 @@ App = {
         });
     },
 
-    handleUploadThing: function(){
+    encryptFile: function(String _fileContent){
+        String encryptContent;
 
+        return encryptContent;
+    }
+
+    decryptFile: function(String _fileContent){
+        String decryptContent;
+        return decryptContent;
+    }
+
+    handleUploadThing: function(){
+        var readFile = document.getElementById(upload).files[0];
+        String fileName = readFile.name;
+        uint fileSize = readFile.size;
+
+        uint filePrice = $('offerPrice').val();
+        String fileType = $('offerType').val();
+
+        console.log("fileName:"+fileName+"fileSize:"+fileSize+"fileType:"+fileType);
+
+        var reader = new FileReader();
+        switch(fileType){
+            case "txt":
+                reader.readAsText(readFile);
+                reader.onload=function(f){
+                    String fileContent = this.result;
+                    App.api.uploadThing(fileName,filePrice,fileType,fileSize,
+                                         {from: App.currentAccount, gas: 100000000});
+                }
+                console.Log("uploadFile:"+fileName);
+                break;
+        }
     },
 
     bindEvents: function () {
@@ -357,6 +388,8 @@ App = {
                         thingTemplate.find('.btn-buy').show();
                         thingTemplate.find('.btn-sell').hide();
                         
+
+                        thingTemplate.find('.uploadFile').hide();
                         thingTemplate.find('.offerID').hide();
                         thingTemplate.find('.offerPrice').hide();
                         thingTemplate.find('.offerSize').hide();
@@ -375,6 +408,8 @@ App = {
                         thingTemplate.find('.btn-buy').hide();
                         thingTemplate.find('.btn-sell').hide();
                         
+
+                        thingTemplate.find('.uploadFile').show();
                         thingTemplate.find('.offerID').show();
                         thingTemplate.find('.offerPrice').show();
                         thingTemplate.find('.offerSize').show();
@@ -386,7 +421,9 @@ App = {
                         thingTemplate.find('.btn-upload').hide();
                         thingTemplate.find('.btn-buy').hide();
                         thingTemplate.find('.btn-sell').show();
+                        
 
+                        thingTemplate.find('.uploadFile').hide();
                         thingTemplate.find('.offerID').hide();
                         thingTemplate.find('.offerPrice').hide();
                         thingTemplate.find('.offerSize').hide();

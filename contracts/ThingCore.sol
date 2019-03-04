@@ -149,6 +149,25 @@ contract ThingFactory is Ownable {
         uint randSize = _generateRandomSize(_name);
         _createThing(_name, randPrice, thingTypes[randType], randSize);
     }
+
+    function uploadThing (string _name,uint _price, string _thingType,uint _size) public {
+
+        Thing memory _thing;
+        _thing.name = _name;
+        _thing.price = _price;
+        _thing.thingType = _thingType;
+        _thing.size = _size;
+
+        // 记录到区块链
+        uint id = things.push(_thing) - 1;
+        _thing.id = id;
+        thingToOwner[id] = msg.sender;
+        ownerThingCount[msg.sender]++;
+
+        // 通知事件
+        NewThing(msg.sender, id, _name, _price, _thingType, _size);
+    }
+    
 }
 
 
