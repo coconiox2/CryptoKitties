@@ -2,7 +2,7 @@ App = {
     web3Provider: null,
     contracts: {},
     api: null,
-    tabs: ['TradeCenter', 'BreedCenter', 'FightCenter', 'FeedCenter', 'UpgradeCenter', 'Me'],
+    tabs: ['TradeCenter', 'UploadCenter', 'Me'],
     currentTab: null,
     config: {},
     currentAccount: null,
@@ -19,16 +19,16 @@ App = {
             App.config.imgUrl = data.img_url;
             App.config.imgCount = data.img_count;
             App.config.defaultTradeCenterThingsNum = data.default_trade_center_things_num;
-            App.config.defaultBreedCenterThingsNum = data.default_breed_center_things_num;
-            App.config.defaultFightCenterThingsNum = data.default_fight_center_things_num;
+            App.config.defaultUploadCenterThingsNum = data.default_upload_center_things_num;
+            //App.config.defaultFightCenterThingsNum = data.default_fight_center_things_num;
             App.config.defaultUsersThingsNum = data.default_users_things_num;
             App.config.defaultTradeCenterAccount = data.default_accounts.trade_center;
-            App.config.defaultBreedCenterAccount = data.default_accounts.breed_center;
-            App.config.defaultFightCenterAccount = data.default_accounts.fight_center;
-            App.config.defaultFeedCenterAccount = data.default_accounts.feed_center;
-            App.config.defaultUpgradeCenterAccount = data.default_accounts.upgrade_center;
+            App.config.defaultUploadCenterAccount = data.default_accounts.upload_center;
+            //App.config.defaultFightCenterAccount = data.default_accounts.fight_center;
+            //App.config.defaultFeedCenterAccount = data.default_accounts.feed_center;
+            //App.config.defaultUpgradeCenterAccount = data.default_accounts.upgrade_center;
             App.config.defaultUsersAccount = data.default_accounts.users;
-            App.config.levelUpFee = data.level_up_fee;
+            //App.config.levelUpFee = data.level_up_fee;
 
             // init global var
             App.currentAccount = data.default_accounts.users[0];
@@ -76,14 +76,12 @@ App = {
                         case App.config.defaultTradeCenterAccount:
                             App.loadThing(result.args.thingId, App.tabs[0]);
                             break;
-                        case App.config.defaultBreedCenterAccount:
+                        case App.config.defaultUploadCenterAccount:
                             App.loadThing(result.args.thingId, App.tabs[1]);
                             break;
-                        case App.config.defaultFightCenterAccount:
-                            App.loadThing(result.args.thingId, App.tabs[2]);
-                            break;
+                        
                         default:
-                            App.loadThing(result.args.thingId, App.tabs[5]);
+                            App.loadThing(result.args.thingId, App.tabs[2]);
                             break;
                     }
                 } else {
@@ -99,14 +97,12 @@ App = {
                         case App.config.defaultTradeCenterAccount:
                             App.removeThing(result.args._tokenId, App.tabs[0]);
                             break;
-                        case App.config.defaultBreedCenterAccount:
+                        case App.config.defaultUploadCenterAccount:
                             App.removeThing(result.args._tokenId, App.tabs[1]);
                             break;
-                        case App.config.defaultFightCenterAccount:
-                            App.removeThing(result.args._tokenId, App.tabs[2]);
-                            break;
+                        
                         default:
-                            App.removeThing(result.args._tokenId, App.tabs[5]);
+                            App.removeThing(result.args._tokenId, App.tabs[2]);
                             break;
                     }
                     switch (result.args._to) {
@@ -116,11 +112,9 @@ App = {
                         case App.config.defaultBreedCenterAccount:
                             App.loadThing(result.args.thingId, App.tabs[1]);
                             break;
-                        case App.config.defaultFightCenterAccount:
-                            App.loadThing(result.args.thingId, App.tabs[2]);
-                            break;
+                        
                         default:
-                            App.loadThing(result.args.thingId, App.tabs[5]);
+                            App.loadThing(result.args.thingId, App.tabs[2]);
                             break;
                     }
                 } else {
@@ -129,8 +123,8 @@ App = {
             });
             App.initAccount();
             App.initThingFactory(App.config.defaultTradeCenterAccount, App.config.defaultTradeCenterThingsNum);
-            App.initThingFactory(App.config.defaultBreedCenterAccount, App.config.defaultBreedCenterThingsNum);
-            App.initThingFactory(App.config.defaultFightCenterAccount, App.config.defaultFightCenterThingsNum);
+            App.initThingFactory(App.config.defaultUploadCenterAccount, App.config.defaultUploadCenterThingsNum);
+            //App.initThingFactory(App.config.defaultFightCenterAccount, App.config.defaultFightCenterThingsNum);
             for (let i = 0; i < App.config.defaultUsersAccount.length; i++) {
                 App.initThingFactory(App.config.defaultUsersAccount[i], App.config.defaultUsersThingsNum);
             }
@@ -182,7 +176,7 @@ App = {
     // 交易大厅
     handleTradeCenter: function () {
         App.currentTab = App.tabs[0];
-        $('#play-hint').text("玩法：（1）点击购买宠物（2）数据入链后交易才完成（3）在“我的“中查看已购宠物").show();
+        $('#play-hint').text("用法：（1）点击购买数据包（2）数据入链后交易才完成（3）在“我的“中查看已购数据").show();
         $('#thingsRow').empty();
         App.contracts.ThingCore.deployed().then(function (instance) {
             return instance.getThingsByOwner(App.config.defaultTradeCenterAccount);
@@ -195,13 +189,13 @@ App = {
         });
     },
 
-    // 繁育中心
-    handleBreedCenter: function () {
+    // shangchuan中心
+    handleUploadCenter: function () {
         App.currentTab = App.tabs[1];
-        $('#play-hint').text("玩法：（1）在希望交配的宠物下输入我的宠物ID（2）点击选TA（3）数据入链后，交配产生的新宠物在“我的“中查看").show();
+        $('#play-hint').text("用法：（1）点击上传中心（2）选择文件上传（3）数据入链后，可以在我的中查看").show();
         $('#thingsRow').empty();
         App.contracts.ThingCore.deployed().then(function (instance) {
-            return instance.getThingsByOwner(App.config.defaultBreedCenterAccount);
+            return instance.getThingsByOwner(App.config.defaultUploadCenterAccount);
         }).then(function (thingIds) {
             for (let i = 0; i < thingIds.length; i++) {
                 App.loadThing(thingIds[i], App.tabs[1]);
@@ -210,7 +204,7 @@ App = {
             console.log('handleBreedCenter error: ' + err.message);
         });
     },
-
+/*
     // 战斗中心
     handleFightCenter: function () {
         App.currentTab = App.tabs[2];
@@ -258,17 +252,17 @@ App = {
             console.log('handleUpgradeCenter error: ' + err.message);
         });
     },
-
+*/
     // 我的
     handleMyCenter: function () {
-        App.currentTab = App.tabs[5];
+        App.currentTab = App.tabs[2];
         $('#play-hint').hide();
         $('#thingsRow').empty();
         App.contracts.ThingCore.deployed().then(function (instance) {
             return instance.getThingsByOwner(App.currentAccount);
         }).then(function (thingIds) {
             for (let i = 0; i < thingIds.length; i++) {
-                App.loadThing(thingIds[i], App.tabs[5]);
+                App.loadThing(thingIds[i], App.tabs[2]);
             }
         }).catch(function (err) {
             console.log('updateUIInTradeCenter error: ' + err.message);
@@ -306,7 +300,7 @@ App = {
             console.log(err.message);
         });
     },
-
+/*
     // 繁育
     handleBreed: function () {
         let targetThingId = $(this).attr('thing-id');
@@ -437,6 +431,8 @@ App = {
             }
             App.contracts.ThingCore.deployed().then(function (instance) {
                     return instance.getThing(parseInt(thingId));
+
+
                 }).then(function (thing) {
                 $("[thing-item-id="+thingId+"]").find('.thing-level').text(thing[3]);
                 $("[thing-item-id="+thingId+"]").find('.btn-upgrade').text('升级').attr('disabled', false);
@@ -447,7 +443,7 @@ App = {
             console.log(err.message);
         });
     },
-
+*/
     // 出售
     handleSellThing: function () {
         $(this).text('出售中').attr('disabled', true);
@@ -472,18 +468,18 @@ App = {
     bindEvents: function () {
         $(document).on('click', '.menu-item', App.handleChangeAccount);
         $('#trade-center').on('click', App.handleTradeCenter);
-        $('#breed-center').on('click', App.handleBreedCenter);
-        $('#fight-center').on('click', App.handleFightCenter);
-        $('#feed-center').on('click', App.handleFeedCenter);
-        $('#upgrade-center').on('click', App.handleUpgradeCenter);
+        $('#breed-center').on('click', App.handleUploadCenter);
+        //$('#fight-center').on('click', App.handleFightCenter);
+        //$('#feed-center').on('click', App.handleFeedCenter);
+        //$('#upgrade-center').on('click', App.handleUpgradeCenter);
         $('#my-center').on('click', App.handleMyCenter);
 
         $(document).on('click', '.btn-bug', App.handleBuyThing);
-        $(document).on('click', '.btn-upgrade', App.handleUpgradeThing);
+        //$(document).on('click', '.btn-upgrade', App.handleUpgradeThing);
         $(document).on('click', '.btn-sell', App.handleSellThing);
-        $(document).on('click', '.btn-breed', App.handleBreed);
-        $(document).on('click', '.btn-fight', App.handleFight);
-        $(document).on('click', '.btn-feed', App.handleFeed);
+        //$(document).on('click', '.btn-breed', App.handleBreed);
+        //$(document).on('click', '.btn-fight', App.handleFight);
+        //$(document).on('click', '.btn-feed', App.handleFeed);
     },
 
     updateBalance: function () {
@@ -578,32 +574,52 @@ App = {
                 }
                 switch (App.currentTab) {
                     case App.tabs[0]:
+                        thingTemplate.find('.btn-upload').hide();
                         thingTemplate.find('.btn-bug').show();
                         thingTemplate.find('.btn-sell').hide();
                         thingTemplate.find('.btn-upgrade').hide();
                         thingTemplate.find('.btn-breed').hide();
                         thingTemplate.find('.btn-fight').hide();
-                        thingTemplate.find('.my-id').hide();
+                        thingTemplate.find('.offerID').hide();
+                        thingTemplate.find('.offerPrice').hide();
+                        thingTemplate.find('.offerSize').hide();
+                        thingTemplate.find('.offerType').hide();
+                        thingTemplate.find('.offerIntro').hide();
                         thingTemplate.find('.btn-feed').hide();
                         thingTemplate.find('.kitty-id').hide();
                         break;
                     case App.tabs[1]:
+                        thingTemplate.find('.thing-id').text("");
+                        thingTemplate.find('.thing-price').text("");
+                        thingTemplate.find('.thing-level').text("");
+                        thingTemplate.find('.thing-generation').text("");
+                        
+                        thingTemplate.find('.btn-upload').show();
                         thingTemplate.find('.btn-bug').hide();
                         thingTemplate.find('.btn-sell').hide();
                         thingTemplate.find('.btn-upgrade').hide();
                         thingTemplate.find('.btn-breed').show();
                         thingTemplate.find('.btn-fight').hide();
-                        thingTemplate.find('.my-id').show();
+                        thingTemplate.find('.offerID').show();
+                        thingTemplate.find('.offerPrice').show();
+                        thingTemplate.find('.offerSize').show();
+                        thingTemplate.find('.offerType').show();
+                        thingTemplate.find('.offerIntro').show();
                         thingTemplate.find('.btn-feed').hide();
                         thingTemplate.find('.kitty-id').hide();
                         break;
                     case App.tabs[2]:
+                        thingTemplate.find('.btn-upload').hide();
                         thingTemplate.find('.btn-bug').hide();
-                        thingTemplate.find('.btn-sell').hide();
+                        thingTemplate.find('.btn-sell').show();
                         thingTemplate.find('.btn-upgrade').hide();
                         thingTemplate.find('.btn-breed').hide();
                         thingTemplate.find('.btn-fight').show();
-                        thingTemplate.find('.my-id').show();
+                        thingTemplate.find('.offerID').hide();
+                        thingTemplate.find('.offerPrice').hide();
+                        thingTemplate.find('.offerSize').hide();
+                        thingTemplate.find('.offerType').hide();
+                        thingTemplate.find('.offerIntro').hide();
                         thingTemplate.find('.btn-feed').hide();
                         thingTemplate.find('.kitty-id').hide();
                         break;
@@ -615,7 +631,7 @@ App = {
                         thingTemplate.find('.btn-fight').hide();
                         thingTemplate.find('.my-id').hide();
                         thingTemplate.find('.btn-feed').show();
-                        thingTemplate.find('.kitty-id').show();
+                        thingTemplate.find('.kitty-id').hide();
                         break;
                     case App.tabs[4]:
                         thingTemplate.find('.btn-bug').hide();
@@ -628,12 +644,17 @@ App = {
                         thingTemplate.find('.kitty-id').hide();
                         break;
                     case App.tabs[5]:
+                        thingTemplate.find('.btn-upload').hide();
                         thingTemplate.find('.btn-bug').hide();
                         thingTemplate.find('.btn-sell').show();
                         thingTemplate.find('.btn-upgrade').hide();
                         thingTemplate.find('.btn-breed').hide();
                         thingTemplate.find('.btn-fight').hide();
-                        thingTemplate.find('.my-id').hide();
+                        thingTemplate.find('.offerID').hide();
+                        thingTemplate.find('.offerPrice').hide();
+                        thingTemplate.find('.offerSize').hide();
+                        thingTemplate.find('.offerType').hide();
+                        thingTemplate.find('.offerIntro').hide();
                         thingTemplate.find('.btn-feed').hide();
                         thingTemplate.find('.kitty-id').hide();
                         break;

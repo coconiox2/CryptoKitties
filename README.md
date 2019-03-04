@@ -82,6 +82,8 @@ License
 
 ///////////////////////////////////////////yqDataTransfer
 DataFactory合约中的_offerData函数是平台自己提供数据 供app.js中初始化界面使用的样例数据
+		  dataToOwner函数是由数据进数组的序号得到数据拥有者的address
+		  ownerDataCount函数是由owner的地址得到他一共有几份数据 与下面的getDatasByOwner配合得到用户的数据份数 和数据进数组时的序号 由此可用datas[序号]得到数据信息
 DataHelper合约中的getDatasByOwner函数是根据owner返回该owner对应的数据ID
 		 getData函数是根据数据ID得到数据的名字、类型、数据价格，数据的使用方式
 DataCore合约中的balanceOf函数是根据owner的地址得到该地址拥有的数据的总份数

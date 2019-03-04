@@ -1,21 +1,20 @@
 {
   "debug":true,
-  "dapp_name": "CryptoKitties",
+  "dapp_name": "Data Transcation",
   "rpc": "http://127.0.0.1:7545",
   "network_id":"5777",
   "img_url":"https://api.cryptokitties.co/kitties/",
   "img_count":"600000",
-  "default_trade_center_things_num": 6,
-  "default_breed_center_things_num": 4,
-  "default_fight_center_things_num": 4,
-  "default_users_things_num": 1,
+  "default_trade_center_things_num": 1,
+  "default_upload_center_things_num": 1,
+  "default_users_things_num": 2,
   "default_accounts": {
     "trade_center":"0xAb2b80eD1B91f1B32204543902e1Ad72bA05E315",
-    "breed_center":"0x392bfbb916f609c633b12CbF903024A90e6A85dB",
-    "fight_center":"0x6712f518f022bD874761Cc5e147e9393a43060D7",
-    "feed_center":"0xe585E9AB4C39180550016F058DcC74624A0aCaBe",
-    "upgrade_center":"0xC81367C94e4426a22CD551431c86Bb395371DB51",
+    "upload_center":"0x392bfbb916f609c633b12CbF903024A90e6A85dB",
     "users":[
+      "0x6712f518f022bD874761Cc5e147e9393a43060D7",
+      "0xe585E9AB4C39180550016F058DcC74624A0aCaBe",
+      "0xC81367C94e4426a22CD551431c86Bb395371DB51",
       "0x9aD46dB35Dbc063FD46C3aCAA4D2153EFc74F86C",
       "0x2716eA6cF11c7Bdb4F611C447c2bC207B20987fd"
     ]

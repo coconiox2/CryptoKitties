@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>ETH ERC721 DAPP Demo</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+		<br/>
+		<div id="page-head" style="display: none;">
+			<div style="position: relative;">
+				<div style="position: relative;z-index: 1;">
+					<div id="acount_balance" style="font-size: 15px;float: right;">
+						0 ETH
+					</div>
+					<button type="button" class="btn btn_default" style="float: right;">
+						账户余额:
+					</button>
+				</div>
+				<div style="position: relative;z-index: 2;">
+					<div id="current-account" style = "font-size: 15px;float:right;">
+						0x0
+					</div>
+					<div class="dropdown" style="float:right;">
+						<button class ="btn btn_default dropdown-toggle" type="button" id="
+						menu1" thing-toggle="dropdown">
+							切换账户:
+							<span class="caret"></span>
+						</button>
+						<ul id="menuRow" class="dropdown-menu" role="menu" aria-labeledby=
+						"menu1">
+							<!-- menu here-->
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="row">
+            <div class="col-xs-12 col-sm-8 col-sm-push-2">
+                <h1 id="pageTitle" class="text-center"></h1>
+                <br/>
+            </div>
+        </div>
+
+
+        <div id="page-tabs" style="display: none;">
+            <button id="trade-center" type="button" class="btn btn-primary">交易大厅</button>
+            <button id="upload-center" type="button" class="btn btn-primary">上传中心</button>
+            
+            <button id="my-center" type="button" class="btn btn-primary">我的</button>
+            <br/>
+            <hr/>
+        </div>
+
+        <!--default page-->
+        <div id="page-hint" style="display: none;">
+            <h3 class="text-center">区块链数据查询中....</h3>
+            <br/>
+            <br/>
+            <h4 class="text-center"><<====交易大厅====>></h4>
+            <h4 class="text-center"><<====繁育中心====>></h4>
+            <h4 class="text-center"><<====对战中心====>></h4>
+            <h4 class="text-center"><<====喂养中心====>></h4>
+            <h4 class="text-center"><<====升级中心====>></h4>
+        </div>
+        <h5 id="play-hint" class="text-center;" style="display: none;">玩法：</h5>
+
+        <br/>
+        <div id="thingsRow" class="row">
+            <!-- DATAS LOAD HERE -->
+        </div>
+	</div>
+
+	<!--dataTemplate-->
+	<div id="thing-template"  >
+        <div class="thing-template-body col-sm-6 col-md-4 col-lg-3" thing-item-id="0">
+            <div class="panel panel-default panel-thing">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Scrappy</h3>
+                </div>
+                <div class="panel-body">
+                    <img alt="395x343" data-src="holder.js/395x343" style="width: 100%;height: 220px;background-color: #fff3e1;" class="img-rounded img-center"
+                         src="" data-holder-rendered="true">
+                    <br/><br/>
+                    <strong>ID</strong>: <span class="thing-id">3</span> <br/>
+                    
+                    <strong>价格</strong>: <span class="thing-price">3</span> ETH <br/>
+                    <strong>大小</strong>: <span class="thing-size">3</span> KB<br/>
+                    <strong>类型</strong>: <span class="thing-tyoe"></span> txt<br/>
+                   
+
+                    <button class="btn btn-danger btn-bug" type="button" 
+                            thing-id="0" thing-price="0">购买</button>
+                    <button class="btn btn-danger btn-sell" type="button"
+                            thing-id="0" thing-price="0">出售</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="js/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/web3.min.js"></script>
+    <script src="js/truffle-contract.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
