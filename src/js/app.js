@@ -270,14 +270,87 @@ App = {
         });
     },
 
-    encryptFile: function(String _fileContent){
-        String encryptContent;
+    isPrinme: function(uint n){
+        if(n == 0 || n==1){
+            return false;
+        }else if(n==2){
+            return true;
+        }else if(n % 2 == 0){
+            return false;
+        }
+        for(var i=3;i<Math.sqrt(n);i=i+2){
+            if(n%i == 0){
+                return false;
+            }
+        }
+        return true;
+    }
 
+    generateRandomPrinme: function(){
+        uint randomInt10;
+        while(1){
+            randomInt10 = Math.floor((Math.random()+Math.floor(Math.random()*9+1))*Math.pow(10,9));
+            if(isPrinme(randomInt10)){
+                break;
+            }
+        }
+        return randomInt10;
+    }
+
+    function strToOctal(str){
+        var result = [];
+        var list = str.split("");
+        for(var i=0;i<list.length;i++){
+            if(i != 0){
+                result.push(" ");
+            }
+            var item = list[i];
+            var octalStr = item.charCodeAt().toString(8);
+            result.push(octalStr);
+        }   
+        return result.join("");
+    }
+
+    encryptFile: function(String _fileContent,uint P){
+        String encryptContent = strToOctal(_fileContent);
+        String [] octalEncrypt = encryptContent.split(" ");
+        var [] decEncryptBefore;
+        var [] decEncryptAfter;
+        for(var i=0;i<octalEncrypt.length;i++){
+            decEncryptBefore[i] = parseInt(octalEncrypt[i],10);
+        }
+
+        
+        uint Q = generateRandomPrinme();
+        uint N = P*Q;
+        uint R1 = Math.floor(Math.random()*10);
+        for(var i=0;i<decEncryptBefore.length;i++){
+            decEncryptAfter[i] = (decEncryptBefore[i] + P*R1) % N;
+        }
+        for(var i=0;i<decEncryptAfter.length;i++){
+            decEncryptAfter[i] = decEncryptAfter[i].toString(8);
+        }
+        encryptContent = decEncryptAfter.join(" ");
         return encryptContent;
     }
 
-    decryptFile: function(String _fileContent){
+    decryptFile: function(String _fileContent,uint P){
         String decryptContent;
+        String []octalDecrypt = _fileContent.split(" ");
+        var [] decDecryptBefore;
+        var [] decDecryptAfter;
+
+        for(var i=0;i<octalEncrypt.length;i++){
+            decDecryptBefore[i] = parseInt(octalDecrypt[i],10);
+        }
+
+        for(var i=0;i<decDecryptBefore.length;i++){
+            decDecryptAfter[i] = decDecryptBefore[i] % P;
+        }
+        for(var i=0;i<decDecryptAfter.length;i++){
+            decDecryptAfter[i] = String.fromCharCode(decDecryptAfter[i]);
+        }
+        decryptContent = decDecryptAfter.join("");
         return decryptContent;
     }
 
@@ -285,6 +358,7 @@ App = {
         var readFile = document.getElementById(upload).files[0];
         String fileName = readFile.name;
         uint fileSize = readFile.size;
+        uint P = generateRandomPrinme();
 
         uint filePrice = $('offerPrice').val();
         String fileType = $('offerType').val();
@@ -297,13 +371,18 @@ App = {
                 reader.readAsText(readFile);
                 reader.onload=function(f){
                     String fileContent = this.result;
-                    App.api.uploadThing(fileName,filePrice,fileType,fileSize,
+                    fileContent = encryptFile(fileContent,P);
+                    App.api.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,P
                                          {from: App.currentAccount, gas: 100000000});
                 }
                 console.Log("uploadFile:"+fileName);
                 break;
         }
     },
+
+    handleDownLoadThing: function(){
+        
+    }
 
     bindEvents: function () {
         $(document).on('click', '.menu-item', App.handleChangeAccount);
