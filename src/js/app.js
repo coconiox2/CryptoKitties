@@ -270,6 +270,32 @@ App = {
         });
     },
 
+    function downloadFile(fileName, content){
+        var aLink = document.createElement('a');
+        var blob = new Blob([content]);
+        var evt = document.createEvent("HTMLEvents");
+        evt.initEvent("click", false, false);//initEvent 不加后两个参数在FF下会报错, 感谢 Barret Lee 的反馈
+        aLink.download = fileName;
+        aLink.href = URL.createObjectURL(blob);
+        aLink.dispatchEvent(evt);
+    }
+
+    handleDownLoadThing: function(){
+        $(this).text('yixiazai').attr('disabled',true);
+        let thingId = $(this).attr('thing-id');
+        let thingName = $(this).attr('thing-name');
+        App.contracts.ThingCore.deployed().then(function (instance) {
+            return instance.getThing(parseInt(thingId));
+        }).then(function (thing) {
+            }
+
+        let downloadContent = thing[5];
+        downloadFile(thingName,downloadContent);
+
+    }
+
+
+
     isPrinme: function(uint n){
         if(n == 0 || n==1){
             return false;
@@ -380,9 +406,7 @@ App = {
         }
     },
 
-    handleDownLoadThing: function(){
-        
-    }
+   
 
     bindEvents: function () {
         $(document).on('click', '.menu-item', App.handleChangeAccount);
@@ -393,6 +417,7 @@ App = {
         $(document).on('click', '.btn-buy', App.handleBuyThing);
         $(document).on('click', '.btn-sell', App.handleSellThing);
         $(document).on('click', '.btn-upload', App.handleUploadThing);
+        $(document).on('click', '.btn-download', App.handleDownloadThing);
     },
 
     updateBalance: function () {
