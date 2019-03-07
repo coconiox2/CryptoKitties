@@ -367,6 +367,7 @@ App = {
     decryptFile:function( _fileContent, P){
         var decryptContent;
         var  octalDecrypt = new Array();
+        //alert(_fileContent);
         octalDecrypt = _fileContent.split(" ");
         var  decDecryptBefore = new Array();
         var  decDecryptAfter  = new Array();
@@ -423,14 +424,15 @@ App = {
             return instance.getThing(parseInt(thingId));
         }).then(function (thing) {
                 //let downloadName = strConcat(thingName,".txt");
-                file_content = thing[5];
-                downloadP = thing[7];
+                file_content = thing[4];
+                downloadP = thing[6];
+                let downloadName = "result.txt";
+        
+                let downloadContent = App.decryptFile(file_content,downloadP);
+                App.downloadFile(downloadName,downloadContent);
             }
         );
-        let downloadName = "result.txt";
         
-        let downloadContent = App.decryptFile(file_content,downloadP);
-        App.downloadFile(downloadName,downloadContent);
 
     },
    
