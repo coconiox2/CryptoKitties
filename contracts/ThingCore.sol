@@ -81,7 +81,7 @@ contract ThingFactory is Ownable {
     }
 
     // 生产一个产品后的通知事件
-    event NewThing(address _from, uint thingId, string name, uint price,string thingType,uint size);
+    event NewThing(address _from, uint thingId, string name, uint price,string thingType,uint size,string content,string thingIntro,uint P);
     // 日志事件
     event LogStatus(address _from, string log);
 
@@ -99,6 +99,7 @@ contract ThingFactory is Ownable {
         uint id;
         string content; //neirong 
         string thingIntro;
+        uint P;
     }
 
     Thing[] public things;
@@ -108,7 +109,7 @@ contract ThingFactory is Ownable {
     // _owner <==> _tokenCount
     mapping (address => uint) ownerThingCount;
 
-    function _createThing(string _name, uint _price, string _thingType,uint _size,string _content,string _thingIntro) internal {
+    function _createThing(string _name, uint _price, string _thingType,uint _size,string _content,string _thingIntro,uint _P) internal {
         require(msg.sender != address(0));
 
         // 配置默认产品
@@ -119,7 +120,7 @@ contract ThingFactory is Ownable {
         _thing.size = _size;
         _thing.content = _content;
         _thing.thingIntro = _thingIntro;
-
+        _thing.P = _P;
         // 记录到区块链
         uint id = things.push(_thing) - 1;
         _thing.id = id;
@@ -127,7 +128,7 @@ contract ThingFactory is Ownable {
         ownerThingCount[msg.sender]++;
 
         // 通知事件
-        NewThing(msg.sender, id, _name, _price, _thingType, _size, _content,_thingIntrointro);
+        NewThing(msg.sender, id, _name, _price, _thingType, _size, _content,_thingIntro,_P);
     }
 
     function _generateRandomPrice(string _str) internal view returns (uint) {
@@ -146,17 +147,17 @@ contract ThingFactory is Ownable {
     }
 
     // 对外接口，用于生产产品
-    function createRandomThing(string _name, uint _limit) public {
+    function createRandomThing(string _name, uint _limit,string _content,string _thingIntro) public {
         require(ownerThingCount[msg.sender] <= _limit);
         uint randPrice = _generateRandomPrice(_name);
         uint randType = _generateRandomType(_name);
         uint randSize = _generateRandomSize(_name);
-        string randContent = "xixihaha";
-        string randThingIntro = "xipixiaolian";
-        _createThing(_name, randPrice, thingTypes[randType], randSize,randContent,randThingIntro);
+        
+        uint randP =1111111111; 
+        _createThing(_name, randPrice, thingTypes[randType], randSize,_content,_thingIntro,randP);
     }
 
-    function uploadThing (string _name,uint _price, string _thingType,uint _size,string _content,string _thingIntro) public {
+    function uploadThing (string _name,uint _price, string _thingType,uint _size,string _content,string _thingIntro,uint _P) public {
 
         Thing memory _thing;
         _thing.name = _name;
@@ -165,6 +166,7 @@ contract ThingFactory is Ownable {
         _thing.size = _size;
         _thing.content = _content;
         _thing.thingIntro = _thingIntro;
+        _thing.P = _P;
         // 记录到区块链
         uint id = things.push(_thing) - 1;
         _thing.id = id;
@@ -172,7 +174,7 @@ contract ThingFactory is Ownable {
         ownerThingCount[msg.sender]++;
 
         // 通知事件
-        NewThing(msg.sender, id, _name, _price, _thingType, _size,_content,_thingIntro);
+        NewThing(msg.sender, id, _name, _price, _thingType, _size,_content,_thingIntro,_P);
     }
     
 }
@@ -208,7 +210,8 @@ contract ThingHelper is ThingFactory {
         string thingType,
         uint size,
         string content,
-        string thingIntro) {
+        string thingIntro,
+        uint P) {
         Thing storage thing = things[_thingId];
         name = thing.name;
         price = thing.price;
@@ -216,6 +219,7 @@ contract ThingHelper is ThingFactory {
         size = thing.size;
         content = thing.content;
         thingIntro =thing.thingIntro;
+        P = thing.P;
     }
 }
 

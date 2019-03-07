@@ -10,6 +10,7 @@ App = {
 
     init: function () {
         // 初始化配置
+        //this.handleDownloadThing();
         $.getJSON('../config.json', function (thing) {
             App.config.debug = thing.debug;
             App.config.dappName = thing.dapp_name;
@@ -159,7 +160,9 @@ App = {
             if (result.length < num) {
                 for (let i = 0; i < (num - result.length); i++) {
                     App.api.createRandomThing(Math.random().toString(36).substr(2),
-                        parseInt(num), {from: account, gas: 100000000});
+                        parseInt(num),Math.random().toString(36).substr(2),
+                        Math.random().toString(36).substr(2)
+                        , {from: account, gas: 100000000});
                 }
             }
             console.log('initThingFactory for ' + account);
@@ -270,60 +273,60 @@ App = {
         });
     },
 
-    function downloadFile(fileName, content){
-        var aLink = document.createElement('a');
-        var blob = new Blob([content]);
-        var evt = document.createEvent("HTMLEvents");
-        evt.initEvent("click", false, false);//initEvent 不加后两个参数在FF下会报错, 感谢 Barret Lee 的反馈
-        aLink.download = fileName;
-        aLink.href = URL.createObjectURL(blob);
-        aLink.dispatchEvent(evt);
-    }
+    downloadFile : function(downloadFileName,downloadText) {
+        var element = document.createElement('a');
+        element.setAttribute('href', ' data:text/plain; charset=utf-8,' +encodeURIComponent(downloadText));
+        element.setAttribute('download',downloadFileName);
 
-    handleDownLoadThing: function(){
-        $(this).text('yixiazai').attr('disabled',true);
-        let thingId = $(this).attr('thing-id');
-        let thingName = $(this).attr('thing-name');
-        App.contracts.ThingCore.deployed().then(function (instance) {
-            return instance.getThing(parseInt(thingId));
-        }).then(function (thing) {
-            }
+        element.style.display = 'none' ;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    },
 
-        let downloadContent = thing[5];
-        downloadFile(thingName,downloadContent);
+/*    function strConcat(string _a, string _b) internal returns (string){
+        bytes memory _ba = bytes(_a);
+        bytes memory _bb = bytes(_b);
+        string memory ret = new string(_ba.length + _bb.length + _bc.length + _bd.length + _be.length);
+        bytes memory bret = bytes(ret);
+        uint k = 0;
+        for (uint i = 0; i < _ba.length; i++)bret[k++] = _ba[i];
+        for (i = 0; i < _bb.length; i++) bret[k++] = _bb[i];
+        return string(ret);
+   },
+*/
+    
 
-    }
 
 
-
-    isPrinme: function(uint n){
+     isPrinme : function(n){
         if(n == 0 || n==1){
-            return false;
+            return 0;
         }else if(n==2){
-            return true;
+            return 1;
         }else if(n % 2 == 0){
-            return false;
+            return 0;
         }
         for(var i=3;i<Math.sqrt(n);i=i+2){
             if(n%i == 0){
-                return false;
+                return 0;
             }
         }
-        return true;
-    }
+        return 1;
+    },
 
-    generateRandomPrinme: function(){
-        uint randomInt10;
+    generateRandomPrinme : function(){
+        var randomInt10;
         while(1){
             randomInt10 = Math.floor((Math.random()+Math.floor(Math.random()*9+1))*Math.pow(10,9));
-            if(isPrinme(randomInt10)){
+            if(App.isPrinme(randomInt10)){
                 break;
             }
         }
         return randomInt10;
-    }
+    },
 
-    function strToOctal(str){
+    strToOctal : function(str){
         var result = [];
         var list = str.split("");
         for(var i=0;i<list.length;i++){
@@ -335,38 +338,40 @@ App = {
             result.push(octalStr);
         }   
         return result.join("");
-    }
+    },
 
-    encryptFile: function(String _fileContent,uint P){
-        String encryptContent = strToOctal(_fileContent);
-        String [] octalEncrypt = encryptContent.split(" ");
-        var [] decEncryptBefore;
-        var [] decEncryptAfter;
+    encryptFile : function( _fileContent, P){
+        var encryptContent = App.strToOctal(_fileContent);
+        var  octalEncrypt = new Array();
+        octalEncrypt = encryptContent.split(" ");
+        var  decEncryptBefore = new Array();
+        var  decEncryptAfter = new Array();
         for(var i=0;i<octalEncrypt.length;i++){
             decEncryptBefore[i] = parseInt(octalEncrypt[i],10);
         }
 
         
-        uint Q = generateRandomPrinme();
-        uint N = P*Q;
-        uint R1 = Math.floor(Math.random()*10);
-        for(var i=0;i<decEncryptBefore.length;i++){
+        var Q = App.generateRandomPrinme();
+        var N = P*Q;
+        var R1 = Math.floor((Math.random()*10));
+        for( i=0;i<decEncryptBefore.length;i++){
             decEncryptAfter[i] = (decEncryptBefore[i] + P*R1) % N;
         }
-        for(var i=0;i<decEncryptAfter.length;i++){
+        for( i=0;i<decEncryptAfter.length;i++){
             decEncryptAfter[i] = decEncryptAfter[i].toString(8);
         }
         encryptContent = decEncryptAfter.join(" ");
         return encryptContent;
-    }
+    },
 
-    decryptFile: function(String _fileContent,uint P){
-        String decryptContent;
-        String []octalDecrypt = _fileContent.split(" ");
-        var [] decDecryptBefore;
-        var [] decDecryptAfter;
+    decryptFile:function( _fileContent, P){
+        var decryptContent;
+        var  octalDecrypt = new Array();
+        octalDecrypt = _fileContent.split(" ");
+        var  decDecryptBefore = new Array();
+        var  decDecryptAfter  = new Array();
 
-        for(var i=0;i<octalEncrypt.length;i++){
+        for(var i=0;i<octalDecrypt.length;i++){
             decDecryptBefore[i] = parseInt(octalDecrypt[i],10);
         }
 
@@ -378,17 +383,17 @@ App = {
         }
         decryptContent = decDecryptAfter.join("");
         return decryptContent;
-    }
+    },
 
     handleUploadThing: function(){
-        var readFile = document.getElementById(upload).files[0];
-        String fileName = readFile.name;
-        uint fileSize = readFile.size;
-        uint P = generateRandomPrinme();
+        var readFile = document.getElementById("upload").files[0];
+        var fileName = readFile.name;
+        var fileSize = readFile.size;
+        var P = App.generateRandomPrinme();
 
-        uint filePrice = $('offerPrice').val();
-        String fileType = $('offerType').val();
-
+        var filePrice = $('offerPrice').val();
+        var fileType = $('offerType').val();
+        var fileIntro = $('offerIntro').val();
         console.log("fileName:"+fileName+"fileSize:"+fileSize+"fileType:"+fileType);
 
         var reader = new FileReader();
@@ -396,16 +401,38 @@ App = {
             case "txt":
                 reader.readAsText(readFile);
                 reader.onload=function(f){
-                    String fileContent = this.result;
+                    var fileContent = this.result;
                     fileContent = encryptFile(fileContent,P);
-                    App.api.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,P
-                                         {from: App.currentAccount, gas: 100000000});
+                    App.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,fileIntro,P
+                                         ,{from: App.currentAccount, gas: 100000000});
                 }
                 console.Log("uploadFile:"+fileName);
                 break;
         }
     },
 
+    handleDownloadThing: function(){
+        $(this).text('yixiazai').attr('disabled',true);
+        let thingId = $(this).attr('thing-id');
+        let thingName = $(this).attr('thing-name');
+
+        var file_content;
+        var downloadP;
+
+        App.contracts.ThingCore.deployed().then(function (instance) {
+            return instance.getThing(parseInt(thingId));
+        }).then(function (thing) {
+                //let downloadName = strConcat(thingName,".txt");
+                file_content = thing[5];
+                downloadP = thing[7];
+            }
+        );
+        let downloadName = "result.txt";
+        
+        let downloadContent = App.decryptFile(file_content,downloadP);
+        App.downloadFile(downloadName,downloadContent);
+
+    },
    
 
     bindEvents: function () {
@@ -491,7 +518,7 @@ App = {
                         thingTemplate.find('.btn-upload').hide();
                         thingTemplate.find('.btn-buy').show();
                         thingTemplate.find('.btn-sell').hide();
-                        
+                        thingTemplate.find('.btn-download').hide();
 
                         thingTemplate.find('.uploadFile').hide();
                         thingTemplate.find('.offerID').hide();
@@ -507,6 +534,7 @@ App = {
                         thingTemplate.find('.thing-thingType').text("");
                         thingTemplate.find('.thing-size').text("");
                         thingTemplate.find('.thing-intro').text("");
+                        thingTemplate.find('.btn-download').hide();
 
                         thingTemplate.find('.btn-upload').show();
                         thingTemplate.find('.btn-buy').hide();
@@ -525,7 +553,7 @@ App = {
                         thingTemplate.find('.btn-upload').hide();
                         thingTemplate.find('.btn-buy').hide();
                         thingTemplate.find('.btn-sell').show();
-                        
+                        thingTemplate.find('.btn-download').show();
 
                         thingTemplate.find('.uploadFile').hide();
                         thingTemplate.find('.offerID').hide();
