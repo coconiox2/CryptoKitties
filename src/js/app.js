@@ -158,10 +158,17 @@ App = {
             return instance.getThingsByOwner(account);
         }).then(function (result) {
             if (result.length < num) {
+                var initP;
+                var initContent;
                 for (let i = 0; i < (num - result.length); i++) {
+                    initP = App.generateRandomPrinme();
+                    var oriCon = Math.random().toString(36).substr(2);
+                    //console.log(oriCon);
+                    initContent = App.encryptFile(oriCon,initP);
+                    //console.log(initContent);
                     App.api.createRandomThing(Math.random().toString(36).substr(2),
-                        parseInt(num),Math.random().toString(36).substr(2),
-                        Math.random().toString(36).substr(2)
+                        parseInt(num),initContent,
+                        Math.random().toString(36).substr(2),initP
                         , {from: account, gas: 100000000});
                 }
             }
@@ -347,7 +354,7 @@ App = {
         var  decEncryptBefore = new Array();
         var  decEncryptAfter = new Array();
         for(var i=0;i<octalEncrypt.length;i++){
-            decEncryptBefore[i] = parseInt(octalEncrypt[i],10);
+            decEncryptBefore[i] = parseInt(octalEncrypt[i],8);
         }
 
         
@@ -367,13 +374,13 @@ App = {
     decryptFile:function( _fileContent, P){
         var decryptContent;
         var  octalDecrypt = new Array();
-        //alert(_fileContent);
+        //alert(typeof(P));
         octalDecrypt = _fileContent.split(" ");
         var  decDecryptBefore = new Array();
         var  decDecryptAfter  = new Array();
 
         for(var i=0;i<octalDecrypt.length;i++){
-            decDecryptBefore[i] = parseInt(octalDecrypt[i],10);
+            decDecryptBefore[i] = parseInt(octalDecrypt[i],8);
         }
 
         for(var i=0;i<decDecryptBefore.length;i++){
@@ -392,24 +399,24 @@ App = {
         var fileSize = readFile.size;
         var P = App.generateRandomPrinme();
 
-        var filePrice = $('offerPrice').val();
-        var fileType = $('offerType').val();
-        var fileIntro = $('offerIntro').val();
+        var filePrice = $('.offerPrice').val();
+        var fileType = $('.offerType').val();
+        var fileIntro = $('.offerIntro').val();
         console.log("fileName:"+fileName+"fileSize:"+fileSize+"fileType:"+fileType);
 
         var reader = new FileReader();
-        switch(fileType){
-            case "txt":
-                reader.readAsText(readFile);
-                reader.onload=function(f){
-                    var fileContent = this.result;
-                    fileContent = encryptFile(fileContent,P);
-                    App.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,fileIntro,P
-                                         ,{from: App.currentAccount, gas: 100000000});
-                }
-                console.Log("uploadFile:"+fileName);
-                break;
-        }
+            
+            reader.onload=function(){
+                var fileContent = JSON.stringify(reader.result);
+                alert(typeof(reader.result));
+                fileContent = App.encryptFile(fileContent,P);
+                App.api.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,fileIntro,P
+                                        ,{from: App.currentAccount, gas: 100000000});
+            }
+            reader.readAsText(readFile);
+            console.log("uploadFile:"+fileName);
+                
+    
     },
 
     handleDownloadThing: function(){
@@ -417,15 +424,15 @@ App = {
         let thingId = $(this).attr('thing-id');
         let thingName = $(this).attr('thing-name');
 
-        var file_content;
-        var downloadP;
+        
 
         App.contracts.ThingCore.deployed().then(function (instance) {
             return instance.getThing(parseInt(thingId));
         }).then(function (thing) {
+                console.log(thing);
                 //let downloadName = strConcat(thingName,".txt");
-                file_content = thing[4];
-                downloadP = thing[6];
+                let file_content = thing[4].valueOf();
+                let downloadP = parseInt(thing[6].valueOf());
                 let downloadName = "result.txt";
         
                 let downloadContent = App.decryptFile(file_content,downloadP);

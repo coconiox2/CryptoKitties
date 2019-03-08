@@ -7,7 +7,7 @@
   "img_count":"600000",
   "default_trade_center_things_num": 1,
   "default_upload_center_things_num": 1,
-  "default_users_things_num": 2,
+  "default_users_things_num": 1,
   "default_accounts": {
     "trade_center":"0xAb2b80eD1B91f1B32204543902e1Ad72bA05E315",
     "upload_center":"0x392bfbb916f609c633b12CbF903024A90e6A85dB",

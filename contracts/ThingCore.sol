@@ -147,14 +147,14 @@ contract ThingFactory is Ownable {
     }
 
     // 对外接口，用于生产产品
-    function createRandomThing(string _name, uint _limit,string _content,string _thingIntro) public {
+    function createRandomThing(string _name, uint _limit,string _content,string _thingIntro,uint _randP) public {
         require(ownerThingCount[msg.sender] <= _limit);
         uint randPrice = _generateRandomPrice(_name);
         uint randType = _generateRandomType(_name);
         uint randSize = _generateRandomSize(_name);
         
-        uint randP =1111111111; 
-        _createThing(_name, randPrice, thingTypes[randType], randSize,_content,_thingIntro,randP);
+         
+        _createThing(_name, randPrice, thingTypes[randType], randSize,_content,_thingIntro,_randP);
     }
 
     function uploadThing (string _name,uint _price, string _thingType,uint _size,string _content,string _thingIntro,uint _P) public {
