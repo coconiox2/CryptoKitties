@@ -368,20 +368,50 @@ App = {
     },
 
     encryptFile:function(_fileContent,_pubKey){
-        var pubKey = parseInt(_pubKey);
+        var key = new Array();
+        key = _pubKey.split(" ");
+        var N = key[0];
+        var g = key[1];
+
         var fileContentNum = App.strToNum(_fileContent);
         var enBefore = new Array();
         var enAfter = new Array();
         enBefore = fileContentNum.split(" ");
-        for(var i=0; i<enBefore.length;i++){
-            var r = Math.floor((Math.random()*100));
-            enAfter[i] =  (g.modPow(m, nsquare) * (r.modPow(n, nsquare))) mod(nsquare);
-        }
+        var r = Math.floor((Math.random()*100));
 
+        for(var i=0; i<enBefore.length;i++){
+            
+            //c = (g^m)*(r^n)modnsquare
+            enAfter[i] = bigMod(bigMul(bigPow(g,enBefore[i]),bigPow(r,N)));
+        }
+        return enAfter.join(" ");
     },
 
-    decryptFile:function(){
+    /** 
+     * 利用私钥lamada对密文c进行解密返回明文m
+     * 公式：m = ( L((c^lambda) mod nsquare) / L((g^lambda) mod nsquare) ) mod n
+     */ 
 
+    decryptFile:function(_fileContent,_priKey,_pubKey){
+        var key = new Array();
+        key = _pubKey.split(" ");
+        var N = key[0];
+        var g = key[1];
+
+        var fileContentNum = App.strToNum(_fileContent);
+        var deBefore = new Array();
+        var deAfter = new Array();
+        deBefore = fileContentNum.split(" ");
+
+
+        for(var i=0; i<enBefore.length;i++){
+            var u1 = bigMod(bigPow(deBefore[i],_priKey),bigMul(N,N));
+            var u2 = bigMod(bigPow(g,_priKey),bigMul(N,N));
+            var n1 = bigDiv(bigSub(u1,"1"),N);
+            var n2 = bigDiv(bigSub(u2,"1"),N);
+            deAfter[i] = bigMod(bigDiv(n1,n2),N);
+        }
+        return deAfter.join("");
     },
 
 /*
