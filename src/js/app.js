@@ -1,3 +1,4 @@
+
 App = {
     web3Provider: null,
     contracts: {},
@@ -291,21 +292,6 @@ App = {
         document.body.removeChild(element);
     },
 
-/*    function strConcat(string _a, string _b) internal returns (string){
-        bytes memory _ba = bytes(_a);
-        bytes memory _bb = bytes(_b);
-        string memory ret = new string(_ba.length + _bb.length + _bc.length + _bd.length + _be.length);
-        bytes memory bret = bytes(ret);
-        uint k = 0;
-        for (uint i = 0; i < _ba.length; i++)bret[k++] = _ba[i];
-        for (i = 0; i < _bb.length; i++) bret[k++] = _bb[i];
-        return string(ret);
-   },
-*/
-    
-
-
-
      isPrinme : function(n){
         if(n == 0 || n==1){
             return 0;
@@ -333,7 +319,7 @@ App = {
         return randomInt10;
     },
 
-    strToOctal : function(str){
+    strToNum : function(str){
         var result = [];
         var list = str.split("");
         for(var i=0;i<list.length;i++){
@@ -341,12 +327,64 @@ App = {
                 result.push(" ");
             }
             var item = list[i];
-            var octalStr = item.charCodeAt().toString(8);
+            var octalStr = parseInt(item);
             result.push(octalStr);
         }   
         return result.join("");
     },
 
+    gcd:function(a,b){
+        if(b == 0) return a;
+        return App.gcd(b,a%b);
+    },
+
+
+    keyGeneration:function(){
+        var key = new Array();
+        var p = App.generateRandomPrinme();
+        var q = App.generateRandomPrinme();
+        //////////[n,g]:public key
+        var n = p*q;
+        var nsquare = n*n;
+        var g = Math.floor((Math.random()*100));
+        //////////lambda:private key
+        var lambda = (p-1)*(q-1)/(App.gcd(p-1,q-1));
+        key[0] = n.toString();
+        key[1] = g.toString();
+        key[2] = lambda.toString();
+        return key.join(" ");
+    },
+
+    
+
+    handleDownloadPriKey:function(){
+        $(this).text('yixiazai').attr('disabled',true);
+        var key = App.keyGeneration();
+        var keyArrAsc = new Array();
+        keyArrAsc = key.split(" ");
+        var priKey = parseInt(keyArrAsc[2]);
+        var downloadName = "privateKey.txt";
+        App.downloadFile(downloadName,priKey);
+    },
+
+    encryptFile:function(_fileContent,_pubKey){
+        var pubKey = parseInt(_pubKey);
+        var fileContentNum = App.strToNum(_fileContent);
+        var enBefore = new Array();
+        var enAfter = new Array();
+        enBefore = fileContentNum.split(" ");
+        for(var i=0; i<enBefore.length;i++){
+            var r = Math.floor((Math.random()*100));
+            enAfter[i] =  (g.modPow(m, nsquare) * (r.modPow(n, nsquare))) mod(nsquare);
+        }
+
+    },
+
+    decryptFile:function(){
+
+    },
+
+/*
     encryptFile : function( _fileContent, P){
         var encryptContent = App.strToOctal(_fileContent);
         var  octalEncrypt = new Array();
@@ -392,29 +430,90 @@ App = {
         decryptContent = decDecryptAfter.join("");
         return decryptContent;
     },
+*/
+////////////////
+    isNumber:function(val) {
+        var regPos = /^\d+(\.\d+)?$/; //非负浮点数
+        var regNeg = /^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/; //负浮点数
+        if(regPos.test(val) || regNeg.test(val)) {
+            return true;
+            } else {
+            return false;
+            }
+    },
+
+//检查编码，引用了 jschardet
+    checkEncoding:function( base64Str ){
+        //这种方式得到的是一种二进制串
+        var str = atob( base64Str.split(";base64,")[1] );
+//      console.log(str);
+        //要用二进制格式
+        var encoding = jschardet.detect( str );
+        encoding = encoding.encoding;
+//      console.log( encoding );
+        if( encoding == "windows-1252"){    //有时会识别错误（如UTF8的中文二字）
+            encoding = "ANSI";
+        }
+        return encoding;
+    },
+
 
     handleUploadThing: function(){
-        var readFile = document.getElementById("upload").files[0];
-        var fileName = readFile.name;
-        var fileSize = readFile.size;
+        //const XLSX = require("xlsx");
+        
         var P = App.generateRandomPrinme();
 
         var filePrice = $('.offerPrice').val();
         var fileType = $('.offerType').val();
         var fileIntro = $('.offerIntro').val();
         console.log("fileName:"+fileName+"fileSize:"+fileSize+"fileType:"+fileType);
+        var readFile = document.getElementById("upload").files[0];
+        var pubKeyFile = document.getElementById("upload").files[1];
+        var fileName = readFile.name;
+        var fileSize = readFile.size;
+        var pubKey;
 
         var reader = new FileReader();
-            
+        var keyReader = new FileReader();
+        if(fileType == "txt"){
+            keyReader.onload = function(){
+                pubKey = JSON.stringify(keyReader.result);
+            }
+            keyReader.readAsText(pubKeyFile);
+
             reader.onload=function(){
                 var fileContent = JSON.stringify(reader.result);
-                alert(typeof(reader.result));
-                fileContent = App.encryptFile(fileContent,P);
-                App.api.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,fileIntro,P
-                                        ,{from: App.currentAccount, gas: 100000000});
+
+                //alert(typeof(reader.result));
+                fileContent = App.encryptFile(fileContent,pubKey);
+                App.api.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,fileIntro
+                                            ,{from: App.currentAccount, gas: 100000000});
             }
             reader.readAsText(readFile);
-            console.log("uploadFile:"+fileName);
+        }else{
+            reader.readAsDataURL(readFile);
+            reader.onload = function(){
+                var data = reader.result;
+                var encoding = App.checkEncoding(data);
+                Papa.parse( readFile, {
+                    encoding: encoding,
+                    complete: function(results) {       // UTF8 \r\n与\n混用时有可能会出问题
+                    //              console.log(results);
+                        var res = results.data;
+                        if( res[ res.length-1 ] == ""){ //去除最后的空行
+                            res.pop();
+                        }
+                        ////////////array res for use
+                    }
+                });
+            }
+        }
+        
+        
+
+
+        console.log("uploadFile:"+fileName);
+
                 
     
     },

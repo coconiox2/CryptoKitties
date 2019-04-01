@@ -17,5 +17,9 @@
     "lite-server": "^2.4.0",
     "truffle": "^5.0.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "js-xlsx": "^0.8.22",
+    "mathjs": "^5.8.0",
+    "xlsx": "^0.14.1"
+  }
 }
