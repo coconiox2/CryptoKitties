@@ -4,205 +4,144 @@
 <meta charset="utf-8">
 <title>test</title>
 <script src="js/BigInt.js"></script>
+<script src="js/Calculator.min.js"></script>
 <script type="text/javascript">
-function bigAdd(a,b){
-    var str1,str2,temp;
-    var addFlag = 0;
-    var max = [],min = [],res = [];
-    str1 = a.split("").reverse();//分割字符串，并且反转
-    str2 = b.split("").reverse();
- 
-    if (parseInt(a) >= parseInt(b)) {
-        max = str1;
-        min = str2;
-    }
-    else{
-        max = str2;
-        min = str1;
-    }
-    for (var i = 0; i <= max.length - 1; i++) {
-        if (i <= min.length - 1) {
-            temp = parseInt(max[i]) + parseInt(min[i]) + addFlag;
+
+function isPrinme(n){
+        if(n == 0 || n==1){
+            return 0;
+        }else if(n==2){
+            return 1;
+        }else if(n % 2 == 0){
+            return 0;
         }
-        else{
-            temp = parseInt(max[i]) + addFlag;
-        }
- 
-        if (temp > 9) {
-            res[i] = temp - 10;
-            addFlag = 1;
-            if (i == max.length - 1) {
-                res[max.length] = 1;//如果是最后一位，要进位
+        for(var i=3;i<Math.sqrt(n);i=i+2){
+            if(n%i == 0){
+                return 0;
             }
         }
-        else{
-            res.push(temp);
-            addFlag = 0;
-        }
-    };
-    return res.reverse().join("");
-}
+        return 1;
+    }
 
-function bigSub(a,b){
-    var str1,str2,temp,des,r;
-    var addFlag = 0;
-    var max = [],min = [],res = [];
-    str1 = a.split("").reverse();//依然分割字符串，并且翻转
-    str2 = b.split("").reverse();
- 
-    if (parseInt(a) >= parseInt(b)) {//比较大小
-        max = str1;
-        min = str2;
-    }
-    else{
-        max = str2;
-        min = str1;
-        des = -1;//意味着结果是负数
-    }
-    for (var i = 0; i <= max.length - 1; i++) {
-        if (i <= min.length - 1) {
-            temp = parseInt(max[i]) - parseInt(min[i]) + addFlag;
-        }
-        else{
-            temp = parseInt(max[i]) + addFlag;
-        }
- 
-        if (temp <= 0) {
-            res[i] = temp + 10;
-            addFlag = -1;
-            if (i == max.length - 1) {
-                res[max.length - 1] = "";//如果是最后一位，退位
+function generateRandomPrinme(){
+        var randomInt10;
+        while(1){
+            randomInt10 = Math.floor((Math.random()+Math.floor(Math.random()*9+1))*Math.pow(1,1));
+            if(isPrinme(randomInt10)){
+                break;
             }
         }
-        else{
-            res.push(temp);
-            addFlag = 0;
-        }
-    };
-    r = res.reverse().join("");
-    if (des == -1) {//最后再来判断符号，这是负数
-        return -r;
+        return randomInt10;
     }
-    else{
-        return r;
-    }
+
+function calMod(a, b) {
+	var cal = new Calculator();
+    var c = cal.divide(a,b,0);
+    var d = cal.multiply(b,c);
+    var e = cal.minus(a,d);
+    return e;
 }
 
-function bigMul(a,b){
-    var str1,str2,temp,n;
-    var max = [],min = [],res = [];
-    str1 = a.split("").reverse();
-    str2 = b.split("").reverse();
-     
- 
-    if (str1.length > str2.length) {
-        max = str1;
-        min = str2;
-    }
-    else{
-        max = str2;
-        min = str1;
-    }
- 
-    for (var i = 0; i <= min.length - 1; i++) {
-        for (var j = 0; j <= max.length - 1; j++) {
-            res[i + j] = 0;//下面要进行递归，这里必须声明，否则是NaN
-        }
-    }
- 
-    for (var i = 0; i <= min.length - 1; i++) {
-        for (var j = 0; j <= max.length - 1; j++) {
-            res[i + j] += parseInt(max[j]) * parseInt(min[i]);
-        }
-    }
-    var m = res.length;//这个声明不可以放在前面，否则为null
-    for (var n = 0; n < m; n++) {
-        if (res[n] >= 10) {
-            if (n == m - 1) {
-                res[n + 1] = 0;
+function calGcd(a, b) {
+
+    return (b == "0" || b==0)? a:calGcd(b,calMod(a,b));
+}
+
+function strAddBlank(str){
+        var result = [];
+        var list = str.split("");
+       /* for(var i=0;i<list.length;i++){
+            if(i != 0){
+                result.push(" ");
             }
-            res[n + 1] += Math.floor(res[n]/10);
-            res[n] = res[n] % 10;  
-        }
+            var item = list[i];
+            var octalStr = parseInt(item);
+            result.push(octalStr);
+        }*/   
+        return list.join(" ");
     }
-    return res.reverse().join("");
-}
 
-function bigDiv(a,b){
-    var max,min,temp;
-    var res = [];
-    var s = 0;
-    if (a-b>0) {
-        max = a;
-        min = b;
-    }
-    else{
-        max = b;
-        min = a;
-    }
-    if(max - min - min>= 0){
-        while(max - min >= 0){
-            max -= min;
-            console.log(max)
-            s++;
-            console.log(s)
-            if (max - min -min< 0) {
-                temp = max;
-            };
-        }
-    }
-    else{
-        s = 0;
-        temp = max - min;
-    }
-    res[0] = s;
-    res[1] = temp;
-    return s.toString();
- 
-}　
+function keyGeneration(){
+        var cal = new Calculator();
 
-function bigPow(a,b){
-	var res = "1";
-	var bNum = parseInt(b);
-	for(var i=0;i<bNum;i++){
-		res = bigMul(res,a);
-	}
-	return res;
-}
+        var key = new Array();
+        var p = generateRandomPrinme();
+        var q = generateRandomPrinme();
+        var pStr = p.toString();
+        var qStr = q.toString();
+        //////////[n,g]:public key
+        var n = cal.multiply(pStr,qStr);
+        var nsquare = cal.multiply(n,n);
+        var g = 2;
 
-function bigMod(a,b){
-    var max,min,temp;
-    var res = [];
-    var s = 0;
-    if (a - b > 0) {
-        max = a;
-        min = b;
+        //var g = Math.floor((Math.random()*100))+1;
+        //////////lambda:private key
+        //lamada=lcm(p-1,q-1),即lamada是p-1,q-1的最小公倍数
+        //lamada=((p-1)*(q-1)) / gcd(p-1,q-1);
+        //var lambda = bigDiv(bigMul(bigSub(pStr,1),bigSub(qStr,1)),bigGcd(bigSub(pStr,1),bigSub(qStr,1)));
+        var chushu = calGcd(cal.minus(pStr,"1"),cal.minus(qStr,"1"));
+        var beichushu = cal.multiply(cal.minus(pStr,"1"),cal.minus(qStr,"1"));
+        var lambda = cal.divide(beichushu,chushu);
+        key[0] = n.toString();
+        key[1] = g.toString();
+        key[2] = lambda.toString();
+        return key.join(" ");
     }
-    else{
-        max = b;
-        min = a;
+
+function encryptFile(_fileContent,_pubKey){
+        var key = new Array();
+        var cal = new Calculator();
+        key = _pubKey.split(" ");
+        var N = key[0];
+        var g = key[1];
+        var r = Math.floor((Math.random()*100));
+        //encrypt
+        //pri = (g^m)*(r^n)modnsquare
+        var a = cal.power(g,_fileContent);
+        var b = cal.power(r,N);
+        var c = cal.multiply(N,N);
+        
+        var d = cal.multiply(a,b);
+        var e = calMod(d,c);
+        return e;
     }
-    if(max - min - min >= 0){
-        while(max - min >= 0){
-            max -= min;
-            console.log(max)
-            s++;
-            console.log(s)
-            if (max - min -min< 0) {
-                temp = max;
-            };
-        }
+
+function decryptFile(_fileContent,_priKey,_pubKey){
+        var key = new Array();
+        var cal = new Calculator();
+        key = _pubKey.split(" ");
+        var N = key[0];
+        var g = key[1];
+        var nsquare = cal.multiply(N,N);
+
+        //decrypt
+        var a1 = cal.power(_fileContent,_priKey);
+        var b1 = calMod(a1,nsquare);
+        var c1 = cal.divide(cal.minus(b1,1),N);
+
+        var a2 = cal.power(g,_priKey);
+        var b2 = calMod(a2,nsquare);
+        var c2 = cal.divide(cal.minus(b2,1),N);
+
+        var d = cal.divide(c1,c2);
+        var e = calMod(d,N);
+        return e;
     }
-    else{
-        s = 0;
-        temp = max - min;
-    }
-    res[0] = s;
-    res[1] = temp;
-    return temp.toString();
-}
-var test = bigMod("3471","39");
-console.log(test);
+
+
+var a = keyGeneration();
+var b = a.split(" ");
+var c = new Array();
+c[0] = b[0];
+c[1] = b[1];
+
+var priKey = b[2];
+var pubkey = c.join(" ");
+
+var file = "5";
+var test = encryptFile(file,pubkey);
+var tes = decryptFile(test,priKey,pubkey);
+
 
 </script>
 </head>

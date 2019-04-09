@@ -125,13 +125,12 @@ function bigDiv(a,b){
     var max,min,temp;
     var res = [];
     var s = 0;
-    if (a-b>0) {
+    if (a-b>=0) {
         max = a;
         min = b;
     }
     else{
-        max = b;
-        min = a;
+        return "0";
     }
     if(max - min - min>= 0){
         while(max - min >= 0){
@@ -167,20 +166,19 @@ function bigMod(a,b){
     var max,min,temp;
     var res = [];
     var s = 0;
-    if (a - b > 0) {
+    if (a - b >= 0) {
         max = a;
         min = b;
     }
     else{
-        max = b;
-        min = a;
+        return a;
     }
     if(max - min - min >= 0){
         while(max - min >= 0){
             max -= min;
-            console.log(max)
+            //console.log(max)
             s++;
-            console.log(s)
+            //console.log(s)
             if (max - min -min< 0) {
                 temp = max;
             };
@@ -193,4 +191,8 @@ function bigMod(a,b){
     res[0] = s;
     res[1] = temp;
     return temp.toString();
+}
+function bigGcd(a,b){
+    if(b == 0) return a;
+    return bigGcd(b,bigMod(a,b));
 }

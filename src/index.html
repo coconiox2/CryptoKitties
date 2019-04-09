@@ -90,9 +90,11 @@
                          src="" data-holder-rendered="true">
                     <br/><br/>
                     <strong>ID</strong>: <span class="thing-id">3</span> <br/>
+                    <input type="text" class="form-control; display: none; offerID" placeholder="名称">
+                    <br/>
                     <strong>name</strong>: <span class="thing-name">3</span> <br/>
 
-                    <input type="text" class="form-control; display: none; offerID" placeholder="名称">
+                    <input type="text" class="form-control; display: none; offerName" placeholder="名称">
                     <br/>
                     <strong>价格</strong>: <span class="thing-price">3</span> ETH 
                     <br/>
@@ -112,14 +114,14 @@
                     
 
                     
-                    
+                    <button class="btn btn-danger btn-downloadKey" type="button" style="display: none;">下载钥匙</button>
                     <button class="btn btn-danger btn-upload" type="button" style="display: none;"
                             thing-id="0" thing-price="0" multiple="multiple">上传</button>
                     <button class="btn btn-danger btn-buy" type="button" style="display: none;"
                             thing-id="0" thing-price="0">购买</button>
                     <button class="btn btn-danger btn-sell" type="button" style="display: none;"
                             thing-id="0" thing-price="0">出售</button>
-                    <button class="btn btn-danger btn-download" type="button" style="display: none;">down</button>
+                    <button class="btn btn-danger btn-download" type="button" style="display: none;">下载数据</button>
                 </div>
             </div>
         </div>
@@ -131,7 +133,13 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
-    <script src="js/BigInt.js"></script>
+    
+    <script src="js/jsbn/jsbn.js"></script>
+    <script src="js/jsbn/jsbn2.js"></script>
+    <script src="js/jsbn/prng4.js"></script>
+    <script src="js/jsbn/rng.js"></script>
+    <script src="js/paillier.js"></script>
+
     <script src="js/papaparse.js"></script>
     <script src="js/jschardet.js"></script>
     <script src="js/base64.js"></script>

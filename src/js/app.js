@@ -165,11 +165,11 @@ App = {
                     initP = App.generateRandomPrinme();
                     var oriCon = Math.random().toString(36).substr(2);
                     //console.log(oriCon);
-                    initContent = App.encryptFile(oriCon,initP);
+                    initContent = oriCon;
                     //console.log(initContent);
                     App.api.createRandomThing(Math.random().toString(36).substr(2),
                         parseInt(num),initContent,
-                        Math.random().toString(36).substr(2),initP
+                        Math.random().toString(36).substr(2)
                         , {from: account, gas: 100000000});
                 }
             }
@@ -319,148 +319,25 @@ App = {
         return randomInt10;
     },
 
-    strToNum : function(str){
-        var result = [];
-        var list = str.split("");
-        for(var i=0;i<list.length;i++){
-            if(i != 0){
-                result.push(" ");
-            }
-            var item = list[i];
-            var octalStr = parseInt(item);
-            result.push(octalStr);
-        }   
-        return result.join("");
-    },
+    decryptFile : function(_fileContent,_priKey){
+        var keys = {};
+        var tempKey = new Array();
+        var modulusbits = 1024;
+        var decryptContent;
+        /////tempKey[0] = n
+        /////tempKey[1] = lambda
+        tempKey = _priKey.split(" ");
+        keys.pub = new paillier.publicKey(modulusbits,parseInt(tempKey[0]));
+        keys.sec = new paillier.privateKey(tempKey[1],keys.pub);
 
-    gcd:function(a,b){
-        if(b == 0) return a;
-        return App.gcd(b,a%b);
-    },
-
-
-    keyGeneration:function(){
-        var key = new Array();
-        var p = App.generateRandomPrinme();
-        var q = App.generateRandomPrinme();
-        //////////[n,g]:public key
-        var n = p*q;
-        var nsquare = n*n;
-        var g = Math.floor((Math.random()*100));
-        //////////lambda:private key
-        var lambda = (p-1)*(q-1)/(App.gcd(p-1,q-1));
-        key[0] = n.toString();
-        key[1] = g.toString();
-        key[2] = lambda.toString();
-        return key.join(" ");
+        decryptContent = keys.sec.decrypt(_fileContent).toString(10);
+        return _fileContent;
     },
 
     
 
-    handleDownloadPriKey:function(){
-        $(this).text('yixiazai').attr('disabled',true);
-        var key = App.keyGeneration();
-        var keyArrAsc = new Array();
-        keyArrAsc = key.split(" ");
-        var priKey = parseInt(keyArrAsc[2]);
-        var downloadName = "privateKey.txt";
-        App.downloadFile(downloadName,priKey);
-    },
-
-    encryptFile:function(_fileContent,_pubKey){
-        var key = new Array();
-        key = _pubKey.split(" ");
-        var N = key[0];
-        var g = key[1];
-
-        var fileContentNum = App.strToNum(_fileContent);
-        var enBefore = new Array();
-        var enAfter = new Array();
-        enBefore = fileContentNum.split(" ");
-        var r = Math.floor((Math.random()*100));
-
-        for(var i=0; i<enBefore.length;i++){
-            
-            //c = (g^m)*(r^n)modnsquare
-            enAfter[i] = bigMod(bigMul(bigPow(g,enBefore[i]),bigPow(r,N)));
-        }
-        return enAfter.join(" ");
-    },
-
-    /** 
-     * 利用私钥lamada对密文c进行解密返回明文m
-     * 公式：m = ( L((c^lambda) mod nsquare) / L((g^lambda) mod nsquare) ) mod n
-     */ 
-
-    decryptFile:function(_fileContent,_priKey,_pubKey){
-        var key = new Array();
-        key = _pubKey.split(" ");
-        var N = key[0];
-        var g = key[1];
-
-        var fileContentNum = App.strToNum(_fileContent);
-        var deBefore = new Array();
-        var deAfter = new Array();
-        deBefore = fileContentNum.split(" ");
-
-
-        for(var i=0; i<enBefore.length;i++){
-            var u1 = bigMod(bigPow(deBefore[i],_priKey),bigMul(N,N));
-            var u2 = bigMod(bigPow(g,_priKey),bigMul(N,N));
-            var n1 = bigDiv(bigSub(u1,"1"),N);
-            var n2 = bigDiv(bigSub(u2,"1"),N);
-            deAfter[i] = bigMod(bigDiv(n1,n2),N);
-        }
-        return deAfter.join("");
-    },
-
-/*
-    encryptFile : function( _fileContent, P){
-        var encryptContent = App.strToOctal(_fileContent);
-        var  octalEncrypt = new Array();
-        octalEncrypt = encryptContent.split(" ");
-        var  decEncryptBefore = new Array();
-        var  decEncryptAfter = new Array();
-        for(var i=0;i<octalEncrypt.length;i++){
-            decEncryptBefore[i] = parseInt(octalEncrypt[i],8);
-        }
-
-        
-        var Q = App.generateRandomPrinme();
-        var N = P*Q;
-        var R1 = Math.floor((Math.random()*10));
-        for( i=0;i<decEncryptBefore.length;i++){
-            decEncryptAfter[i] = (decEncryptBefore[i] + P*R1) % N;
-        }
-        for( i=0;i<decEncryptAfter.length;i++){
-            decEncryptAfter[i] = decEncryptAfter[i].toString(8);
-        }
-        encryptContent = decEncryptAfter.join(" ");
-        return encryptContent;
-    },
-
-    decryptFile:function( _fileContent, P){
-        var decryptContent;
-        var  octalDecrypt = new Array();
-        //alert(typeof(P));
-        octalDecrypt = _fileContent.split(" ");
-        var  decDecryptBefore = new Array();
-        var  decDecryptAfter  = new Array();
-
-        for(var i=0;i<octalDecrypt.length;i++){
-            decDecryptBefore[i] = parseInt(octalDecrypt[i],8);
-        }
-
-        for(var i=0;i<decDecryptBefore.length;i++){
-            decDecryptAfter[i] = decDecryptBefore[i] % P;
-        }
-        for(var i=0;i<decDecryptAfter.length;i++){
-            decDecryptAfter[i] = String.fromCharCode(decDecryptAfter[i]);
-        }
-        decryptContent = decDecryptAfter.join("");
-        return decryptContent;
-    },
-*/
+    
+ 
 ////////////////
     isNumber:function(val) {
         var regPos = /^\d+(\.\d+)?$/; //非负浮点数
@@ -487,6 +364,19 @@ App = {
         return encoding;
     },
 
+    handleDownloadKey:function(){
+        //$(this).text('yixiazai').attr('disabled',true);
+        var numBits = 1024;
+        var keysT = paillier.generateKeys(numBits);
+        var keys = new Array();
+        keys[0] = keysT.pub.n.toString();
+        keys[1] = keysT.sec.lambda.toString();
+
+        downloadName = "keys.txt";
+
+        App.downloadFile(downloadName,keys.join(" "));
+    },
+
 
     handleUploadThing: function(){
         //const XLSX = require("xlsx");
@@ -498,7 +388,7 @@ App = {
         var fileIntro = $('.offerIntro').val();
         console.log("fileName:"+fileName+"fileSize:"+fileSize+"fileType:"+fileType);
         var readFile = document.getElementById("upload").files[0];
-        var pubKeyFile = document.getElementById("upload").files[1];
+        
         var fileName = readFile.name;
         var fileSize = readFile.size;
         var pubKey;
@@ -515,12 +405,18 @@ App = {
                 var fileContent = JSON.stringify(reader.result);
 
                 //alert(typeof(reader.result));
-                fileContent = App.encryptFile(fileContent,pubKey);
+                //fileContent = App.encryptFile(fileContent,pubKey);
                 App.api.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,fileIntro
-                                            ,{from: App.currentAccount, gas: 100000000});
+                                            ,{from: App.config.defaultTradeCenterAccount, gas: 100000000});
             }
             reader.readAsText(readFile);
         }else{
+            
+            var res = new Array();
+            var numBits = 1024;
+            var keys = paillier.generateKeys(numBits);
+
+
             reader.readAsDataURL(readFile);
             reader.onload = function(){
                 var data = reader.result;
@@ -529,19 +425,42 @@ App = {
                     encoding: encoding,
                     complete: function(results) {       // UTF8 \r\n与\n混用时有可能会出问题
                     //              console.log(results);
-                        var res = results.data;
+                        res = results.data;
                         if( res[ res.length-1 ] == ""){ //去除最后的空行
                             res.pop();
                         }
                         ////////////array res for use
+                        var enc = new Array();
+                        for(var temp1 = 0;temp1<res[0].length;temp1++){
+                            enc[temp1] = new Array();
+                        }
+                        for(var temp = 0;temp<res[0].length;temp++){
+                            enc[0][temp] = res[0][temp];
+                        }
+                        for(var i=1;i<res.length;i++){
+                            for(var j=0;j<res[i].length;j++){
+                                enc[i][j] = (keys.pub.encrypt(nbv(res[i][j]))).toString();
+                            }
+                        }
+
+                        var fileArr = new Array();
+                        for(var i=0;i<res.length;i++){
+                            fileArr[i] = res[i].join("#");
+                        }
+                        var  fileContent =  fileArr.join("|");
+
+                        App.api.uploadThing(fileName,filePrice,fileType,fileSize,fileContent,fileIntro
+                                            ,{from: App.config.defaultTradeCenterAccount, gas: 100000000});
+                        //console.log(enc);
                     }
                 });
             }
+
         }
         
+        App.handleDownloadKey();
+
         
-
-
         console.log("uploadFile:"+fileName);
 
                 
@@ -549,23 +468,58 @@ App = {
     },
 
     handleDownloadThing: function(){
-        $(this).text('yixiazai').attr('disabled',true);
+        $(this).text('已下载').attr('disabled',true);
         let thingId = $(this).attr('thing-id');
         let thingName = $(this).attr('thing-name');
-
-        
+        var keyReader = new FileReader();
+        var priKey;
 
         App.contracts.ThingCore.deployed().then(function (instance) {
             return instance.getThing(parseInt(thingId));
         }).then(function (thing) {
                 console.log(thing);
                 //let downloadName = strConcat(thingName,".txt");
+                
+
                 let file_content = thing[4].valueOf();
-                let downloadP = parseInt(thing[6].valueOf());
-                let downloadName = "result.txt";
+                let downloadContent;
+                //let downloadP = parseInt(thing[6].valueOf());
+                let fileType = thing[2].valueOf();
+
+                if(fileType == "txt"){
+                    let downloadName = "result.txt";
+                    downloadContent = file_content;
+                    App.downloadFile(downloadName,downloadContent);
+                }else{
+                    var priKeyFile = document.getElementById("upload").files[0];
+                    keyReader.onload = function(){
+                        priKey = JSON.stringify(keyReader.result);
+                    }
+                    keyReader.readAsText(priKeyFile);
+
+                    let downloadName = "result.csv";
+                    var tempArr = file_content.split("|");
+                    var dataArr = new Array();
+                    for(var i =0;i<tempArr.length;i++){
+                        dataArr[i] = new Array();
+                        dataArr[i] = tempArr[i].split("#");
+                    }
+                    for(var i=0;i<dataArr.length;i++){
+                        for(var j=0;j<dataArr[i].length;j++){
+                            dataArr[i][j] = App.decryptFile(dataArr[i][j],priKey);
+                        }
+                    }
+
+                    ////测试解密csv是否正确
+                    var testcsv = new Array();
+
+                    /////////写csv文件并提供下载
+                }
+
+                
         
-                let downloadContent = App.decryptFile(file_content,downloadP);
-                App.downloadFile(downloadName,downloadContent);
+                //let downloadContent = App.decryptFile(file_content,downloadP);
+                //App.downloadFile(downloadName,downloadContent);
             }
         );
         
@@ -583,6 +537,7 @@ App = {
         $(document).on('click', '.btn-sell', App.handleSellThing);
         $(document).on('click', '.btn-upload', App.handleUploadThing);
         $(document).on('click', '.btn-download', App.handleDownloadThing);
+        $(document).on('click', '.btn-downloadKey', App.handleDownloadKey);
     },
 
     updateBalance: function () {
@@ -657,6 +612,7 @@ App = {
                         thingTemplate.find('.btn-buy').show();
                         thingTemplate.find('.btn-sell').hide();
                         thingTemplate.find('.btn-download').hide();
+                        thingTemplate.find('.btn-downloadKey').hide();
 
                         thingTemplate.find('.uploadFile').hide();
                         thingTemplate.find('.offerID').hide();
@@ -674,6 +630,7 @@ App = {
                         thingTemplate.find('.thing-intro').text("");
                         thingTemplate.find('.btn-download').hide();
 
+                        thingTemplate.find('.btn-downloadKey').hide();
                         thingTemplate.find('.btn-upload').show();
                         thingTemplate.find('.btn-buy').hide();
                         thingTemplate.find('.btn-sell').hide();
@@ -692,8 +649,9 @@ App = {
                         thingTemplate.find('.btn-buy').hide();
                         thingTemplate.find('.btn-sell').show();
                         thingTemplate.find('.btn-download').show();
+                        thingTemplate.find('.btn-downloadKey').hide();
 
-                        thingTemplate.find('.uploadFile').hide();
+                        thingTemplate.find('.uploadFile').show();
                         thingTemplate.find('.offerID').hide();
                         thingTemplate.find('.offerPrice').hide();
                         thingTemplate.find('.offerSize').hide();
@@ -721,6 +679,7 @@ App = {
 
 $(function () {
     $(window).load(function () {
+        //var cal = new Calculator();
         App.init();
     });
 });
