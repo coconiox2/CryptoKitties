@@ -281,9 +281,31 @@ App = {
         });
     },
 
-    downloadFile : function(downloadFileName,downloadText) {
+    downloadTxtFile : function(downloadFileName,downloadText) {
         var element = document.createElement('a');
         element.setAttribute('href', ' data:text/plain; charset=utf-8,' +encodeURIComponent(downloadText));
+        element.setAttribute('download',downloadFileName);
+
+        element.style.display = 'none' ;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    },
+
+    downloadCsvFile : function(downloadFileName,downloadCsv) {
+        let csvContent = "";
+        /*rows.forEach(function(downloadCsv){
+            let row = downloadCsv.join(",");
+            csvContent += row + "\r\n";
+        }); 
+        */
+        for(var i=0;i<downloadCsv.length;i++){
+            let row = downloadCsv[i].join(",");
+            csvContent += row + "\r\n";
+        }
+
+        var element = document.createElement('a');
+        element.setAttribute('href', ' data:text/plain; charset=utf-8,' +encodeURI(csvContent));
         element.setAttribute('download',downloadFileName);
 
         element.style.display = 'none' ;
@@ -327,11 +349,16 @@ App = {
         /////tempKey[0] = n
         /////tempKey[1] = lambda
         tempKey = _priKey.split(" ");
-        keys.pub = new paillier.publicKey(modulusbits,parseInt(tempKey[0]));
-        keys.sec = new paillier.privateKey(tempKey[1],keys.pub);
+        var temp1 = new BigInteger(tempKey[0]);
+        var temp2 = new BigInteger(tempKey[1])
+        keys.pub = new paillier.publicKey(modulusbits,temp1);
+        keys.sec = new paillier.privateKey(temp2,keys.pub);
 
-        decryptContent = keys.sec.decrypt(_fileContent).toString(10);
-        return _fileContent;
+        var fileNum = new BigInteger(_fileContent);
+
+        decryptContent = keys.sec.decrypt(fileNum);
+        var test = decryptContent.toString(10);
+        return test;
     },
 
     
@@ -364,17 +391,17 @@ App = {
         return encoding;
     },
 
-    handleDownloadKey:function(){
+    handleDownloadKey:function(_keys){
         //$(this).text('yixiazai').attr('disabled',true);
-        var numBits = 1024;
-        var keysT = paillier.generateKeys(numBits);
+        //var numBits = 1024;
+        //var keysT = paillier.generateKeys(numBits);
         var keys = new Array();
-        keys[0] = keysT.pub.n.toString();
-        keys[1] = keysT.sec.lambda.toString();
+        keys[0] = _keys.pub.n.toString();
+        keys[1] = _keys.sec.lambda.toString();
 
         downloadName = "keys.txt";
 
-        App.downloadFile(downloadName,keys.join(" "));
+        App.downloadTxtFile(downloadName,keys.join(" "));
     },
 
 
@@ -387,7 +414,7 @@ App = {
         var fileType = $('.offerType').val();
         var fileIntro = $('.offerIntro').val();
         console.log("fileName:"+fileName+"fileSize:"+fileSize+"fileType:"+fileType);
-        var readFile = document.getElementById("upload").files[0];
+        var readFile = document.getElementsByName("upload")[0].files[0];
         
         var fileName = readFile.name;
         var fileSize = readFile.size;
@@ -415,7 +442,7 @@ App = {
             var res = new Array();
             var numBits = 1024;
             var keys = paillier.generateKeys(numBits);
-
+            App.handleDownloadKey(keys);
 
             reader.readAsDataURL(readFile);
             reader.onload = function(){
@@ -445,7 +472,7 @@ App = {
 
                         var fileArr = new Array();
                         for(var i=0;i<res.length;i++){
-                            fileArr[i] = res[i].join("#");
+                            fileArr[i] = enc[i].join("#");
                         }
                         var  fileContent =  fileArr.join("|");
 
@@ -458,7 +485,7 @@ App = {
 
         }
         
-        App.handleDownloadKey();
+        
 
         
         console.log("uploadFile:"+fileName);
@@ -470,7 +497,7 @@ App = {
     handleDownloadThing: function(){
         $(this).text('已下载').attr('disabled',true);
         let thingId = $(this).attr('thing-id');
-        let thingName = $(this).attr('thing-name');
+        //let thingName = $(this).attr('thing-name');
         var keyReader = new FileReader();
         var priKey;
 
@@ -489,31 +516,33 @@ App = {
                 if(fileType == "txt"){
                     let downloadName = "result.txt";
                     downloadContent = file_content;
-                    App.downloadFile(downloadName,downloadContent);
+                    App.downloadTxtFile(downloadName,downloadContent);
                 }else{
-                    var priKeyFile = document.getElementById("upload").files[0];
+                    var test = document.getElementsByName("upload")[1];
+                    var priKeyFile = test.files[0];
+
                     keyReader.onload = function(){
-                        priKey = JSON.stringify(keyReader.result);
+                        //alert(typeof(keyReader.result));
+                        priKey = keyReader.result;
+                        let downloadName = "result.csv";
+                        var tempArr = file_content.split("|");
+                        var dataArr = new Array();
+                        for(var i =0;i<tempArr.length;i++){
+                            dataArr[i] = new Array();
+                            dataArr[i] = tempArr[i].split("#");
+                        }
+                        for(var i=1;i<dataArr.length;i++){
+                            for(var j=0;j<dataArr[i].length;j++){
+                                dataArr[i][j] = App.decryptFile(dataArr[i][j],priKey);
+                            }
+                        }
+
+                        App.downloadCsvFile(downloadName,dataArr);
                     }
                     keyReader.readAsText(priKeyFile);
 
-                    let downloadName = "result.csv";
-                    var tempArr = file_content.split("|");
-                    var dataArr = new Array();
-                    for(var i =0;i<tempArr.length;i++){
-                        dataArr[i] = new Array();
-                        dataArr[i] = tempArr[i].split("#");
-                    }
-                    for(var i=0;i<dataArr.length;i++){
-                        for(var j=0;j<dataArr[i].length;j++){
-                            dataArr[i][j] = App.decryptFile(dataArr[i][j],priKey);
-                        }
-                    }
+                    //alert(typeof(dataArr));
 
-                    ////测试解密csv是否正确
-                    var testcsv = new Array();
-
-                    /////////写csv文件并提供下载
                 }
 
                 
@@ -592,11 +621,15 @@ App = {
                 thingTemplate.find('.thing-skin').text(attr.skinChoice);
                 thingTemplate.find('.thing-up').text(attr.upChoice);
                 thingTemplate.find('.thing-down').text(attr.downChoice);*/
+
                 thingTemplate.find('.btn-buy').attr('thing-id', thingId);
                 thingTemplate.find('.btn-buy').attr('thing-price', price);
                 thingTemplate.find('.btn-sell').attr('thing-id', thingId);
                 thingTemplate.find('.btn-sell').attr('thing-price', price);
-
+                thingTemplate.find('.btn-upload').attr('thing-id', thingId);
+                thingTemplate.find('.btn-upload').attr('thing-price', price);
+                thingTemplate.find('.btn-download').attr('thing-id', thingId);
+                thingTemplate.find('.btn-download').attr('thing-price', price);
                 ////////////zhongyao///////////////////thingTemplate.find('.btn-upload').attr('thing-price', price);
 
                 /*thingTemplate.find('.btn-upgrade').attr('thing-id', thingId);
@@ -645,7 +678,7 @@ App = {
                         
                         break;
                     case App.tabs[2]:
-                        thingTemplate.find('.btn-upload').hide();
+                        thingTemplate.find('.btn-upload').show();
                         thingTemplate.find('.btn-buy').hide();
                         thingTemplate.find('.btn-sell').show();
                         thingTemplate.find('.btn-download').show();
