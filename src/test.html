@@ -3,146 +3,177 @@
 <head>
 <meta charset="utf-8">
 <title>test</title>
-<script src="js/BigInt.js"></script>
-<script src="js/Calculator.min.js"></script>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+
+<script src="js/jsbn/jsbn.js"></script>
+<script src="js/jsbn/jsbn2.js"></script>
+<script src="js/jsbn/prng4.js"></script>
+<script src="js/jsbn/rng.js"></script>
+<script src="js/paillier.js"></script>
+
+<script src="js/papaparse.js"></script>
+<script src="js/jschardet.js"></script>
+<script src="js/base64.js"></script>
+
 <script type="text/javascript">
 
-function isPrinme(n){
-        if(n == 0 || n==1){
-            return 0;
-        }else if(n==2){
-            return 1;
-        }else if(n % 2 == 0){
-            return 0;
-        }
-        for(var i=3;i<Math.sqrt(n);i=i+2){
-            if(n%i == 0){
-                return 0;
-            }
-        }
-        return 1;
-    }
-
-function generateRandomPrinme(){
-        var randomInt10;
-        while(1){
-            randomInt10 = Math.floor((Math.random()+Math.floor(Math.random()*9+1))*Math.pow(1,1));
-            if(isPrinme(randomInt10)){
-                break;
-            }
-        }
-        return randomInt10;
-    }
-
-function calMod(a, b) {
-	var cal = new Calculator();
-    var c = cal.divide(a,b,0);
-    var d = cal.multiply(b,c);
-    var e = cal.minus(a,d);
-    return e;
+function lcm(a,b) {
+  return a.multiply(b).divide(a.gcd(b));
 }
 
-function calGcd(a, b) {
+function gmod(a,b){
+	if(a.compareTo(BigInteger.ONE) == 0){
+		return BigInteger.ONE;
+	}
 
-    return (b == "0" || b==0)? a:calGcd(b,calMod(a,b));
+	if((a.mod(b)).compareTo(BigInteger.ZERO) == 0){
+		return BigInteger.ZERO;
+	}
+
+	while(b.mod(a).compareTo(BigInteger.ZERO) != 0){
+
+	}
 }
 
-function strAddBlank(str){
-        var result = [];
-        var list = str.split("");
-       /* for(var i=0;i<list.length;i++){
-            if(i != 0){
-                result.push(" ");
-            }
-            var item = list[i];
-            var octalStr = parseInt(item);
-            result.push(octalStr);
-        }*/   
-        return list.join(" ");
-    }
+function imRsaGenKey(numBits){
+	var p,q,r,s;
+	var rng = new SecureRandom();
+	var n;
+	var e,d;
+	var y;
+	do {
+			do {
+				p = new BigInteger(numBits>>1,1,rng);
+			} while (!p.isProbablePrime(10));
 
-function keyGeneration(){
-        var cal = new Calculator();
+			do {
+				q = new BigInteger(numBits>>1,1,rng);
+			} while(!q.isProbablePrime(10));
 
-        var key = new Array();
-        var p = generateRandomPrinme();
-        var q = generateRandomPrinme();
-        var pStr = p.toString();
-        var qStr = q.toString();
-        //////////[n,g]:public key
-        var n = cal.multiply(pStr,qStr);
-        var nsquare = cal.multiply(n,n);
-        var g = 2;
+			do {
+				r = new BigInteger(numBits>>1,1,rng);
+			} while(!r.isProbablePrime(10));
 
-        //var g = Math.floor((Math.random()*100))+1;
-        //////////lambda:private key
-        //lamada=lcm(p-1,q-1),即lamada是p-1,q-1的最小公倍数
-        //lamada=((p-1)*(q-1)) / gcd(p-1,q-1);
-        //var lambda = bigDiv(bigMul(bigSub(pStr,1),bigSub(qStr,1)),bigGcd(bigSub(pStr,1),bigSub(qStr,1)));
-        var chushu = calGcd(cal.minus(pStr,"1"),cal.minus(qStr,"1"));
-        var beichushu = cal.multiply(cal.minus(pStr,"1"),cal.minus(qStr,"1"));
-        var lambda = cal.divide(beichushu,chushu);
-        key[0] = n.toString();
-        key[1] = g.toString();
-        key[2] = lambda.toString();
-        return key.join(" ");
-    }
+			do {
+				s = new BigInteger(numBits>>1,1,rng);
+			} while(!s.isProbablePrime(10));
 
-function encryptFile(_fileContent,_pubKey){
-        var key = new Array();
-        var cal = new Calculator();
-        key = _pubKey.split(" ");
-        var N = key[0];
-        var g = key[1];
-        var r = Math.floor((Math.random()*100));
-        //encrypt
-        //pri = (g^m)*(r^n)modnsquare
-        var a = cal.power(g,_fileContent);
-        var b = cal.power(r,N);
-        var c = cal.multiply(N,N);
-        
-        var d = cal.multiply(a,b);
-        var e = calMod(d,c);
-        return e;
-    }
+			n = p.multiply(q).multiply(r).multiply(s);
+	} while(!(n.testBit(numBits - 1)) || (p.compareTo(q) == 0) ||
+		(p.compareTo(r) == 0) || (p.compareTo(s) == 0) || (q.compareTo(r) == 0)||
+		(q.compareTo(s) == 0) || (r.compareTo(s) == 0));
+	var oula = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)).multiply(r.subtract(BigInteger.ONE)).multiply(s.subtract(BigInteger.ONE));
+	
+	do{
+		e = new BigInteger(numBits,rng);
+	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
+	///////(e,n)为公钥
+	///////(d,n)是私钥
 
-function decryptFile(_fileContent,_priKey,_pubKey){
-        var key = new Array();
-        var cal = new Calculator();
-        key = _pubKey.split(" ");
-        var N = key[0];
-        var g = key[1];
-        var nsquare = cal.multiply(N,N);
+	do{
+		d = e.modInverse(oula);
+	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
 
-        //decrypt
-        var a1 = cal.power(_fileContent,_priKey);
-        var b1 = calMod(a1,nsquare);
-        var c1 = cal.divide(cal.minus(b1,1),N);
-
-        var a2 = cal.power(g,_priKey);
-        var b2 = calMod(a2,nsquare);
-        var c2 = cal.divide(cal.minus(b2,1),N);
-
-        var d = cal.divide(c1,c2);
-        var e = calMod(d,N);
-        return e;
-    }
+	
+	if(p.compareTo(q) > 0){
+		var n_p = n.subtract(p);
+		do{
+			var ran = Math.floor(Math.random()*100);
+			var ranBig = new BigInteger(ran.toString(10));
+			var y = n_p.add(ranBig);
+		}while((y.compareTo(n) >= 0) || (y.gcd(n) != 1));
+	}else{
+		var n_q = n.subtract(q);
+		do{
+			var ran = Math.floor(Math.random()*100);
+			var ranBig = new BigInteger(ran.toString(10));
+			var y = n_q.add(ranBig);
+		}while((y.compareTo(n) >= 0) || (y.gcd(n) != 1));
+	}
 
 
-var a = keyGeneration();
-var b = a.split(" ");
-var c = new Array();
-c[0] = b[0];
-c[1] = b[1];
+	var keys = new Array();
+	keys[0] = y;
+	keys[1] = e;
+	keys[2] = d;
+	return keys.join(" ");;
+	
+}
 
-var priKey = b[2];
-var pubkey = c.join(" ");
+function rsaGenKey(numBits){
+	var p,q;
+	var rng = new SecureRandom();
+	var n;
+	var e,d;
+	do {
+			do {
+				p = new BigInteger(numBits>>1,1,rng);
+			} while (!p.isProbablePrime(10));
 
-var file = "5";
-var test = encryptFile(file,pubkey);
-var tes = decryptFile(test,priKey,pubkey);
+			do {
+				q = new BigInteger(numBits>>1,1,rng);
+			} while(!q.isProbablePrime(10));
 
+			n = p.multiply(q);
+	} while(!(n.testBit(numBits - 1)) || (p.compareTo(q) == 0));
+	var oula = lcm(p.subtract(BigInteger.ONE),q.subtract(BigInteger.ONE));
+	do{
+		e = new BigInteger(numBits,rng);
+	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
+	///////(e,n)为公钥
+	///////(d,n)是私钥
+	do{
+		d = e.modInverse(oula);
+	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
 
+	var keys = new Array();
+	keys[0] = n;
+	keys[1] = e;
+	keys[2] = d;
+	return keys.join(" ");;
+	
+}
+
+function rsaEn(_fileContent,_pubKey){
+	//////_fileContent是字符串,处理时需要先以此字符串为基础新建一个biginteger，
+	////// 处理结束后用tostring（10）返回
+	//////_pubKey是字符串 "n e"
+	var keys = new Array();
+	keys = _pubKey.split(" ");
+	var n = new BigInteger(keys[0]);
+	var e = new BigInteger(keys[1]);
+	var m = new BigInteger(_fileContent);
+	return m.modPow(e,n).toString(10);
+}
+
+function rsaDe(_fileContent,_priKey){
+	//////_fileContent是字符串,处理时需要先以此字符串为基础新建一个biginteger，
+	////// 处理结束后用tostring（10）返回
+	//////_pubKey是字符串 "n d"
+	var keys = new Array();
+	keys = _priKey.split(" ");
+	var n = new BigInteger(keys[0]);
+	var d = new BigInteger(keys[1]);
+	var c = new BigInteger(_fileContent);
+	return c.modPow(d,n).toString(10);
+}
+imRsaGenKey(256);
+/*
+var keys = imRsaGenKey(256);
+var key = keys.split(" ");
+var pubkey = new Array();
+var prikey = new Array();
+pubkey[0] = key[0];
+pubkey[1] = key[1];
+
+prikey[0] = key[0];
+prikey[1] = key[2];
+
+var en = rsaEn("213",pubkey.join(" "));
+var de = rsaDe(en,prikey.join(" ")); 
+
+console.log(de);
+*/
 </script>
 </head>
 <body>
