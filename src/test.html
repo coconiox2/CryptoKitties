@@ -34,13 +34,59 @@ function gmod(a,b){
 
 	}
 }
-
-function imRsaGenKey(numBits){
+function imRsaGenKeyCRT4(numBits){
 	var p,q,r,s;
 	var rng = new SecureRandom();
-	var n;
-	var e,d;
-	var y;
+	
+	do {
+			do {
+				p = new BigInteger(numBits>>1,1,rng);
+			} while (!p.isProbablePrime(10));
+
+			do {
+				q = new BigInteger(numBits>>1,1,rng);
+			} while(!q.isProbablePrime(10));
+
+			do {
+				r = new BigInteger(numBits>>1,1,rng);
+			} while(!r.isProbablePrime(10));
+
+			
+
+			n = p.multiply(q).multiply(r);
+	} while(!(n.testBit(numBits - 1))  || (p.compareTo(q) == 0) ||
+		(p.compareTo(r) == 0) || (q.compareTo(r) == 0));
+	
+	var oula = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)).multiply(r.subtract(BigInteger.ONE));
+
+	do{
+		e = new BigInteger(numBits,rng);
+	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
+	///////(e,n)为公钥
+	///////(d,n)是私钥
+
+	do{
+		d = e.modInverse(oula);
+	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
+
+	var cp,cq,cr,cs;
+	var dp,dq,dr;
+	var mp,mq,mr;
+
+	var test = new BigInteger("456");
+	var testAns = test.modPow(e,n);
+	
+	dp = 
+
+	var M = (ap.add(aq).add(ar).add(s)).mod(n);
+	console.log(M);
+}
+
+
+function imRsaGenKeyCRT4(numBits){
+	var p,q,r,s;
+	var rng = new SecureRandom();
+	
 	do {
 			do {
 				p = new BigInteger(numBits>>1,1,rng);
@@ -59,11 +105,12 @@ function imRsaGenKey(numBits){
 			} while(!s.isProbablePrime(10));
 
 			n = p.multiply(q).multiply(r).multiply(s);
-	} while(!(n.testBit(numBits - 1)) || (p.compareTo(q) == 0) ||
+	} while(!(n.testBit(numBits - 1))  || (p.compareTo(q) == 0) ||
 		(p.compareTo(r) == 0) || (p.compareTo(s) == 0) || (q.compareTo(r) == 0)||
 		(q.compareTo(s) == 0) || (r.compareTo(s) == 0));
-	var oula = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)).multiply(r.subtract(BigInteger.ONE)).multiply(s.subtract(BigInteger.ONE));
 	
+	var oula = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)).multiply(r.subtract(BigInteger.ONE)).multiply(s.subtract(BigInteger.ONE));
+
 	do{
 		e = new BigInteger(numBits,rng);
 	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
@@ -74,30 +121,132 @@ function imRsaGenKey(numBits){
 		d = e.modInverse(oula);
 	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
 
+	var cp,cq,cr,cs;
+	var dp,dq,dr,ds;
+	var mp,mq,mr,ms;
+
+	var test = new BigInteger("456");
+	var testAns = test.modPow(e,n);
 	
+	cp = testAns.mod(p);
+	cq = testAns.mod(q);
+	cr = testAns.mod(r);
+	cs = testAns.mod(s);
+
+	dp = d.mod(p.subtract(BigInteger.ONE));
+	dq = d.mod(q.subtract(BigInteger.ONE));
+	dr = d.mod(r.subtract(BigInteger.ONE));
+	ds = d.mod(s.subtract(BigInteger.ONE));
+
+	mp = cp.modPow(dp,p);
+	mq = cq.modPow(dq,q);
+	mr = cr.modPow(dr,r);
+	ms = cs.modPow(ds,s);
+
+	var ap = mp.multiply((q.multiply(r).multiply(s)).pow(p.subtract(BigInteger.ONE)));
+	var aq = mq.multiply((p.multiply(r).multiply(s)).pow(q.subtract(BigInteger.ONE)));
+	var ar = mr.multiply((p.multiply(q).multiply(s)).pow(r.subtract(BigInteger.ONE)));
+	var as = ms.multiply((p.multiply(q).multiply(r)).pow(s.subtract(BigInteger.ONE)));
+
+	var M = (ap.add(aq).add(ar).add(s)).mod(n);
+	console.log(M);
+}
+
+function imRsaGenKeyDouble(numBits){
+	var p,q,r,s;
+	var rng = new SecureRandom();
+	var n1,n2;
+	var e1,d1;
+	var e2,d2;
+	do {
+			do {
+				p = new BigInteger(numBits>>1,1,rng);
+			} while (!p.isProbablePrime(10));
+
+			do {
+				q = new BigInteger(numBits>>1,1,rng);
+			} while(!q.isProbablePrime(10));
+
+			do {
+				r = new BigInteger(numBits>>1,1,rng);
+			} while(!r.isProbablePrime(10));
+
+			do {
+				s = new BigInteger(numBits>>1,1,rng);
+			} while(!s.isProbablePrime(10));
+
+			n1 = p.multiply(q);
+			n2 = r.multiply(s);
+	} while(!(n1.testBit(numBits - 1)) || !(n2.testBit(numBits - 1)) || (p.compareTo(q) == 0) ||
+		(p.compareTo(r) == 0) || (p.compareTo(s) == 0) || (q.compareTo(r) == 0)||
+		(q.compareTo(s) == 0) || (r.compareTo(s) == 0));
+	
+
+	var oula1 = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
+	
+	do{
+		e1 = new BigInteger(numBits,rng);
+	}while((e1.compareTo(oula1) >= 0) || (e1.compareTo(BigInteger.ONE) <= 0) || (e1.gcd(oula1) != 1));
+	///////(e,n)为公钥
+	///////(d,n)是私钥
+
+	do{
+		d1 = e1.modInverse(oula1);
+	}while((d1.compareTo(oula1) >= 0) || (d1.compareTo(BigInteger.ZERO) <=0) );
+
+	var oula2 = r.subtract(BigInteger.ONE).multiply(s.subtract(BigInteger.ONE));
+
+	do{
+		e2 = new BigInteger(numBits,rng);
+	}while((e2.compareTo(oula2) >= 0) || (e2.compareTo(BigInteger.ONE) <= 0) || (e2.gcd(oula2) != 1));
+	///////(e,n)为公钥
+	///////(d,n)是私钥
+
+	do{
+		d2 = e2.modInverse(oula2);
+	}while((d2.compareTo(oula2) >= 0) || (d2.compareTo(BigInteger.ZERO) <=0) );
+	/*
 	if(p.compareTo(q) > 0){
 		var n_p = n.subtract(p);
 		do{
-			var ran = Math.floor(Math.random()*100);
+			var ran = Math.floor(Math.random()*10000);
 			var ranBig = new BigInteger(ran.toString(10));
-			var y = n_p.add(ranBig);
+			y = n.subtract(ranBig);
+			
 		}while((y.compareTo(n) >= 0) || (y.gcd(n) != 1));
 	}else{
 		var n_q = n.subtract(q);
 		do{
-			var ran = Math.floor(Math.random()*100);
+			var ran = Math.floor(Math.random()*10000);
 			var ranBig = new BigInteger(ran.toString(10));
-			var y = n_q.add(ranBig);
+			y = n.subtract(ranBig);
+			
 		}while((y.compareTo(n) >= 0) || (y.gcd(n) != 1));
 	}
-
+	*/
 
 	var keys = new Array();
-	keys[0] = y;
-	keys[1] = e;
-	keys[2] = d;
-	return keys.join(" ");;
+	keys[0] = n2;
+	keys[1] = e1;
+	keys[2] = d1;
+	keys[3] = e2;
+	keys[4] = d2;
 	
+	var test = new BigInteger("567");
+	var c = test.modPow(e1,n1);
+	var n1_ = n1.modPow(e2,n2);
+	
+	var n1__ = n1_.modPow(d2,n2);
+	var testAns = c.modPow(d1,n1__);
+	console.log(testAns.toString(10));
+}
+
+function imRsaEn(){
+
+}
+
+function imRsaDe(){
+
 }
 
 function rsaGenKey(numBits){
@@ -157,7 +306,8 @@ function rsaDe(_fileContent,_priKey){
 	var c = new BigInteger(_fileContent);
 	return c.modPow(d,n).toString(10);
 }
-imRsaGenKey(256);
+imRsaGenKeyCRT4(256);
+
 /*
 var keys = imRsaGenKey(256);
 var key = keys.split(" ");
