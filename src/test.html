@@ -34,123 +34,6 @@ function gmod(a,b){
 
 	}
 }
-function imRsaGenKeyCRT4(numBits){
-	var p,q,r,s;
-	var rng = new SecureRandom();
-	
-	do {
-			do {
-				p = new BigInteger(numBits>>1,1,rng);
-			} while (!p.isProbablePrime(10));
-
-			do {
-				q = new BigInteger(numBits>>1,1,rng);
-			} while(!q.isProbablePrime(10));
-
-			do {
-				r = new BigInteger(numBits>>1,1,rng);
-			} while(!r.isProbablePrime(10));
-
-			
-
-			n = p.multiply(q).multiply(r);
-	} while(!(n.testBit(numBits - 1))  || (p.compareTo(q) == 0) ||
-		(p.compareTo(r) == 0) || (q.compareTo(r) == 0));
-	
-	var oula = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)).multiply(r.subtract(BigInteger.ONE));
-
-	do{
-		e = new BigInteger(numBits,rng);
-	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
-	///////(e,n)为公钥
-	///////(d,n)是私钥
-
-	do{
-		d = e.modInverse(oula);
-	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
-
-	var cp,cq,cr,cs;
-	var dp,dq,dr;
-	var mp,mq,mr;
-
-	var test = new BigInteger("456");
-	var testAns = test.modPow(e,n);
-	
-	dp = 
-
-	var M = (ap.add(aq).add(ar).add(s)).mod(n);
-	console.log(M);
-}
-
-
-function imRsaGenKeyCRT4(numBits){
-	var p,q,r,s;
-	var rng = new SecureRandom();
-	
-	do {
-			do {
-				p = new BigInteger(numBits>>1,1,rng);
-			} while (!p.isProbablePrime(10));
-
-			do {
-				q = new BigInteger(numBits>>1,1,rng);
-			} while(!q.isProbablePrime(10));
-
-			do {
-				r = new BigInteger(numBits>>1,1,rng);
-			} while(!r.isProbablePrime(10));
-
-			do {
-				s = new BigInteger(numBits>>1,1,rng);
-			} while(!s.isProbablePrime(10));
-
-			n = p.multiply(q).multiply(r).multiply(s);
-	} while(!(n.testBit(numBits - 1))  || (p.compareTo(q) == 0) ||
-		(p.compareTo(r) == 0) || (p.compareTo(s) == 0) || (q.compareTo(r) == 0)||
-		(q.compareTo(s) == 0) || (r.compareTo(s) == 0));
-	
-	var oula = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)).multiply(r.subtract(BigInteger.ONE)).multiply(s.subtract(BigInteger.ONE));
-
-	do{
-		e = new BigInteger(numBits,rng);
-	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
-	///////(e,n)为公钥
-	///////(d,n)是私钥
-
-	do{
-		d = e.modInverse(oula);
-	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
-
-	var cp,cq,cr,cs;
-	var dp,dq,dr,ds;
-	var mp,mq,mr,ms;
-
-	var test = new BigInteger("456");
-	var testAns = test.modPow(e,n);
-	
-	cp = testAns.mod(p);
-	cq = testAns.mod(q);
-	cr = testAns.mod(r);
-	cs = testAns.mod(s);
-
-	dp = d.mod(p.subtract(BigInteger.ONE));
-	dq = d.mod(q.subtract(BigInteger.ONE));
-	dr = d.mod(r.subtract(BigInteger.ONE));
-	ds = d.mod(s.subtract(BigInteger.ONE));
-
-	mp = cp.modPow(dp,p);
-	mq = cq.modPow(dq,q);
-	mr = cr.modPow(dr,r);
-	ms = cs.modPow(ds,s);
-
-	var ap = mp.multiply((q.multiply(r).multiply(s)).pow(p.subtract(BigInteger.ONE)));
-	var aq = mq.multiply((p.multiply(r).multiply(s)).pow(q.subtract(BigInteger.ONE)));
-	var ar = mr.multiply((p.multiply(q).multiply(s)).pow(r.subtract(BigInteger.ONE)));
-	var as = ms.multiply((p.multiply(q).multiply(r)).pow(s.subtract(BigInteger.ONE)));
-
-	var M = (ap.add(aq).add(ar).add(s)).mod(n);
-	console.log(M);
-}
 
 function imRsaGenKeyDouble(numBits){
 	var p,q,r,s;
@@ -241,13 +124,6 @@ function imRsaGenKeyDouble(numBits){
 	console.log(testAns.toString(10));
 }
 
-function imRsaEn(){
-
-}
-
-function imRsaDe(){
-
-}
 
 function rsaGenKey(numBits){
 	var p,q;
@@ -282,7 +158,43 @@ function rsaGenKey(numBits){
 	return keys.join(" ");;
 	
 }
+function imRsaGenKeyCRT(numBits){
+	var p,q;
+	var rng = new SecureRandom();
+	var n;
+	var e,d;
+	do {
+			do {
+				p = new BigInteger(numBits>>1,1,rng);
+			} while (!p.isProbablePrime(10));
 
+			do {
+				q = new BigInteger(numBits>>1,1,rng);
+			} while(!q.isProbablePrime(10));
+
+			n = p.multiply(q);
+	} while(!(n.testBit(numBits - 1)) || (p.compareTo(q) == 0));
+	var oula = lcm(p.subtract(BigInteger.ONE),q.subtract(BigInteger.ONE));
+	do{
+		e = new BigInteger(numBits,rng);
+	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
+	///////(e,n)为公钥
+	///////(d,n)是私钥
+	do{
+		d = e.modInverse(oula);
+	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
+
+	var iq = q.modInverse(p);
+	var dp = d.mod(p.subtract(BigInteger.ONE));
+	var dq = d.mod(q.subtract(BigInteger.ONE));
+	var test = new BigInteger("12456");
+	var testAns = test.modPow(e,n);
+
+	var sp = testAns.modPow(dp,p);
+	var sq = testAns.modPow(dq,q);
+	var niupi = (((sp.subtract(sq)).mod(p)).multiply(iq)).mod(p).multiply(q)+sq;
+	console.log(niupi.toString(10));
+}
 function rsaEn(_fileContent,_pubKey){
 	//////_fileContent是字符串,处理时需要先以此字符串为基础新建一个biginteger，
 	////// 处理结束后用tostring（10）返回
@@ -306,7 +218,7 @@ function rsaDe(_fileContent,_priKey){
 	var c = new BigInteger(_fileContent);
 	return c.modPow(d,n).toString(10);
 }
-imRsaGenKeyCRT4(256);
+rsaGenKeyTEST(256);
 
 /*
 var keys = imRsaGenKey(256);
@@ -323,6 +235,146 @@ var en = rsaEn("213",pubkey.join(" "));
 var de = rsaDe(en,prikey.join(" ")); 
 
 console.log(de);
+*/
+
+
+
+
+
+/*
+function imRsaGenKeyCRT4(numBits){
+	var p,q,r,s;
+	var rng = new SecureRandom();
+	var n;
+	do {
+			do {
+				p = new BigInteger(numBits>>1,1,rng);
+			} while (!p.isProbablePrime(10));
+
+			do {
+				q = new BigInteger(numBits>>1,1,rng);
+			} while(!q.isProbablePrime(10));
+
+			do {
+				r = new BigInteger(numBits>>1,1,rng);
+			} while(!r.isProbablePrime(10));
+
+			
+
+			n = p.multiply(q).multiply(r);
+	} while(!(n.testBit(numBits - 1))  || (p.compareTo(q) == 0) ||
+		(p.compareTo(r) == 0) || (q.compareTo(r) == 0));
+	
+	var oula = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)).multiply(r.subtract(BigInteger.ONE));
+
+	do{
+		e = new BigInteger(numBits,rng);
+	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
+	///////(e,n)为公钥
+	///////(d,n)是私钥
+
+	do{
+		d = e.modInverse(oula);
+	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
+
+	var cp,cq,cr,cs;
+	var dp,dq,dr;
+	var mp,mq,mr;
+	var qInv;
+
+	var test = new BigInteger("456");
+	var testAns = test.modPow(e,n);
+	
+	dp = e.modInverse(p);
+	dq = e.modInverse(q);
+	dr = e.modInverse(r);
+
+	mp = testAns.modPow(dp,p);
+	mq = testAns.modPow(dq,q);
+	mr = testAns.modPow(dr,r);
+
+	qInv = q.modInverse(p);
+	
+	var h1 = (qInv.multiply((mp.subtract(mq)).mod(p))).mod(p);
+	var m12 = mq.add(h1.multiply(q));
+
+	p = p.multiply(q);
+	qInv = r.modInverse(p);
+	var h2 = (qInv.multiply((m12.subtract(mr)).mod(p))).mod(p);
+
+	var m = mr.add(h2.multiply(r));
+	console.log(m);
+}
+
+
+function imRsaGenKeyCRT4(numBits){
+	var p,q,r,s;
+	var rng = new SecureRandom();
+	
+	do {
+			do {
+				p = new BigInteger(numBits>>1,1,rng);
+			} while (!p.isProbablePrime(10));
+
+			do {
+				q = new BigInteger(numBits>>1,1,rng);
+			} while(!q.isProbablePrime(10));
+
+			do {
+				r = new BigInteger(numBits>>1,1,rng);
+			} while(!r.isProbablePrime(10));
+
+			do {
+				s = new BigInteger(numBits>>1,1,rng);
+			} while(!s.isProbablePrime(10));
+
+			n = p.multiply(q).multiply(r).multiply(s);
+	} while(!(n.testBit(numBits - 1))  || (p.compareTo(q) == 0) ||
+		(p.compareTo(r) == 0) || (p.compareTo(s) == 0) || (q.compareTo(r) == 0)||
+		(q.compareTo(s) == 0) || (r.compareTo(s) == 0));
+	
+	var oula = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)).multiply(r.subtract(BigInteger.ONE)).multiply(s.subtract(BigInteger.ONE));
+
+	do{
+		e = new BigInteger(numBits,rng);
+	}while((e.compareTo(oula) >= 0) || (e.compareTo(BigInteger.ONE) <= 0) || (e.gcd(oula) != 1));
+	///////(e,n)为公钥
+	///////(d,n)是私钥
+
+	do{
+		d = e.modInverse(oula);
+	}while((d.compareTo(oula) >= 0) || (d.compareTo(BigInteger.ZERO) <=0) );
+
+	var cp,cq,cr,cs;
+	var dp,dq,dr,ds;
+	var mp,mq,mr,ms;
+
+	var test = new BigInteger("456");
+	var testAns = test.modPow(e,n);
+	
+	cp = testAns.mod(p);
+	cq = testAns.mod(q);
+	cr = testAns.mod(r);
+	cs = testAns.mod(s);
+
+	dp = d.mod(p.subtract(BigInteger.ONE));
+	dq = d.mod(q.subtract(BigInteger.ONE));
+	dr = d.mod(r.subtract(BigInteger.ONE));
+	ds = d.mod(s.subtract(BigInteger.ONE));
+
+	mp = cp.modPow(dp,p);
+	mq = cq.modPow(dq,q);
+	mr = cr.modPow(dr,r);
+	ms = cs.modPow(ds,s);
+
+	var ap = mp.multiply((q.multiply(r).multiply(s)).pow(p.subtract(BigInteger.ONE)));
+	var aq = mq.multiply((p.multiply(r).multiply(s)).pow(q.subtract(BigInteger.ONE)));
+	var ar = mr.multiply((p.multiply(q).multiply(s)).pow(r.subtract(BigInteger.ONE)));
+	var as = ms.multiply((p.multiply(q).multiply(r)).pow(s.subtract(BigInteger.ONE)));
+
+	var M = (ap.add(aq).add(ar).add(s)).mod(n);
+	console.log(M.toString(10));
+}
 */
 </script>
 </head>
