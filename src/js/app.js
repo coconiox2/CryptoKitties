@@ -3,13 +3,32 @@ App = {
     web3Provider: null,
     contracts: {},
     api: null,
-    tabs: ['TradeCenter', 'UploadCenter', 'Me'],
+    tabs: ['TradeCenter', 'UploadCenter', 'Me','UseCenter'],
     currentTab: null,
     config: {},
     currentAccount: null,
     currentAccountBalance: 0,
+    userid: null,
+    email: null,
+
+    getQueryVariable: function(variable)
+    {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+                var pair = vars[i].split("=");
+                if(pair[0] == variable){return pair[1];}
+        }
+        return(false);
+    },
 
     init: function () {
+        var userid = App.getQueryVariable("userid");
+        var email = App.getQueryVariable("email");
+        App.userid = userid;
+        App.email = email;
+
+        console.log(userid + email);
         // 初始化配置
         //this.handleDownloadThing();
         $.getJSON('../config.json', function (thing) {
@@ -29,7 +48,7 @@ App = {
             App.config.defaultUsersAccount = thing.default_accounts.users;
 
             // init global var
-            App.currentAccount = thing.default_accounts.users[0];
+            App.currentAccount = userid;
             $('#current-account').text(App.currentAccount);
             App.currentTab = App.tabs[0];
         }).then(function () {
@@ -228,6 +247,21 @@ App = {
         });
     },
 
+    handleUseCenter:function(){
+        App.currentTab = App.tabs[3];
+        $('#play-hint').hide();
+        $('#thingsRow').empty();
+        App.contracts.ThingCore.deployed().then(function (instance) {
+            return instance.getThingsByOwner(App.currentAccount);
+        }).then(function (thingIds) {
+            for (let i = 0; i < thingIds.length; i++) {
+                App.loadThing(thingIds[i], App.tabs[3]);
+            }
+        }).catch(function (err) {
+            console.log('updateUIInTradeCenter error: ' + err.message);
+        });
+    },
+
     handleChangeAccount: function () {
         console.log("handleChangeAccount");
         App.currentAccount = $(this).html();
@@ -418,6 +452,7 @@ App = {
         
         var fileName = readFile.name;
         var fileSize = readFile.size;
+        alert(fileSize);
         var pubKey;
 
         var reader = new FileReader();
@@ -494,6 +529,8 @@ App = {
     
     },
 
+    
+
     handleDownloadThing: function(){
         $(this).text('已下载').attr('disabled',true);
         let thingId = $(this).attr('thing-id');
@@ -518,7 +555,8 @@ App = {
                     downloadContent = file_content;
                     App.downloadTxtFile(downloadName,downloadContent);
                 }else{
-                    var test = document.getElementsByName("upload")[1];
+                    var len = document.getElementsByName("upload").length-2;
+                    var test = document.getElementsByName("upload")[len];
                     var priKeyFile = test.files[0];
 
                     keyReader.onload = function(){
@@ -554,6 +592,72 @@ App = {
         
 
     },
+
+    handleUseThing:function(thingId, callback){
+        //$(this).text('已下载').attr('disabled',true);
+        /*let thingId = $(this).attr('thing-id');*/
+        //let thingName = $(this).attr('thing-name');
+
+
+
+        
+
+
+
+        var keyReader = new FileReader();
+        var priKey;
+
+        App.contracts.ThingCore.deployed().then(function (instance) {
+            return instance.getThing(parseInt(thingId));
+        }).then(function (thing) {
+                console.log(thing);
+                //let downloadName = strConcat(thingName,".txt");
+                
+
+                let file_content = thing[4].valueOf();
+                let downloadContent;
+                //let downloadP = parseInt(thing[6].valueOf());
+                let fileType = thing[2].valueOf();
+
+                
+                var test = document.getElementById("upFile");
+                //var test = document.getElementsByName("upFile")[len];
+                var priKeyFile = test.files[0];
+
+                keyReader.onload = function(){
+                    //alert(typeof(keyReader.result));
+                    priKey = keyReader.result;
+                    let downloadName = "result.csv";
+                    var tempArr = file_content.split("|");
+                    var dataArr = new Array();
+                    for(var i =0;i<tempArr.length;i++){
+                        dataArr[i] = new Array();
+                        dataArr[i] = tempArr[i].split("#");
+                    }
+                    
+                    for(var i=1;i<dataArr.length;i++){
+                        for(var j=0;j<dataArr[i].length;j++){
+                            dataArr[i][j] = App.decryptFile(dataArr[i][j],priKey);
+                        }
+                    }
+
+                    callback(dataArr)
+                    // App.downloadCsvFile(downloadName,dataArr);
+
+                }
+                keyReader.readAsText(priKeyFile);
+
+                //alert(typeof(dataArr));
+
+                
+
+                
+        
+                //let downloadContent = App.decryptFile(file_content,downloadP);
+                //App.downloadFile(downloadName,downloadContent);
+            }
+        );
+    },
    
 
     bindEvents: function () {
@@ -561,8 +665,11 @@ App = {
         $('#trade-center').on('click', App.handleTradeCenter);
         $('#upload-center').on('click', App.handleUploadCenter);
         $('#my-center').on('click', App.handleMyCenter);
+        $('#use-center').on('click', App.handleUseCenter);
 
         $(document).on('click', '.btn-buy', App.handleBuyThing);
+        $(document).on('click', '.btn-buyUse', App.handleBuyThing);
+        $(document).on('click', '.btn-use', App.handleUseThing);
         $(document).on('click', '.btn-sell', App.handleSellThing);
         $(document).on('click', '.btn-upload', App.handleUploadThing);
         $(document).on('click', '.btn-download', App.handleDownloadThing);
@@ -581,7 +688,7 @@ App = {
             return instance.getThing(parseInt(thingId));
         }).then(function (thing) {
             if ($('#page-hint').is(':visible')) {
-                $('#pageTitle').text(App.config.dappName);
+                //$('#pageTitle').text(App.config.dappName);
                 $('#page-hint').hide();
                 $('#page-tabs').show();
                 $('#page-head').show();
@@ -590,20 +697,27 @@ App = {
             let price = thing[1];
             let thingType = thing[2];
             let size = thing[3];
-            
+            if(thingType == "txt"){
+                var thingImg = "text.png";
+            }else{
+                var thingImg = "form.jpeg"
+            }
+
             let url = App.config.imgUrl + (thing[1] % App.config.imgCount);
             if (App.config.debug) {
-                console.log("Image res: " + url);
+                //console.log("Image res: " + url);
             }
             $.get(url, function(thing) {
-                console.log(JSON.stringify(thing));
+                //console.log(JSON.stringify(thing));
                 let thingsRow = $('#thingsRow');
                 let thingTemplate = $('#thing-template');
                 thingTemplate.find('.thing-template-body').addClass('thing-item');
                 thingTemplate.find('.thing-template-body').attr('thing-item-id', thingId);
                 thingTemplate.find('.panel-title').text("名字：" + name);
-                thingTemplate.find('img').attr('src', thing.image_url);
+
+                thingTemplate.find('img').attr('src', thingImg);
                 thingTemplate.find('.thing-id').text(thingId);
+                thingTemplate.find('.thing-template-body').attr('onclick', '');
                 thingTemplate.find('.thing-price').text(price);
                 thingTemplate.find('.thing-thingType').text(thingType);
                 thingTemplate.find('.thing-size').text(size);
@@ -643,6 +757,8 @@ App = {
                     case App.tabs[0]:
                         thingTemplate.find('.btn-upload').hide();
                         thingTemplate.find('.btn-buy').show();
+                        thingTemplate.find('.btn-buyUse').show();
+                        thingTemplate.find('.btn-use').hide();
                         thingTemplate.find('.btn-sell').hide();
                         thingTemplate.find('.btn-download').hide();
                         thingTemplate.find('.btn-downloadKey').hide();
@@ -666,6 +782,8 @@ App = {
                         thingTemplate.find('.btn-downloadKey').hide();
                         thingTemplate.find('.btn-upload').show();
                         thingTemplate.find('.btn-buy').hide();
+                        thingTemplate.find('.btn-use').hide();
+                        thingTemplate.find('.btn-buyUse').hide();
                         thingTemplate.find('.btn-sell').hide();
                         
 
@@ -678,13 +796,34 @@ App = {
                         
                         break;
                     case App.tabs[2]:
-                        thingTemplate.find('.btn-upload').show();
+                        thingTemplate.find('.btn-upload').hide();
                         thingTemplate.find('.btn-buy').hide();
+                        thingTemplate.find('.btn-use').hide();
+                        thingTemplate.find('.btn-buyUse').hide();
                         thingTemplate.find('.btn-sell').show();
                         thingTemplate.find('.btn-download').show();
                         thingTemplate.find('.btn-downloadKey').hide();
 
+
                         thingTemplate.find('.uploadFile').show();
+                        thingTemplate.find('.offerID').hide();
+                        thingTemplate.find('.offerPrice').hide();
+                        thingTemplate.find('.offerSize').hide();
+                        thingTemplate.find('.offerType').hide();
+                        thingTemplate.find('.offerIntro').hide();
+
+                        break;
+                    case App.tabs[3]:
+                        thingTemplate.find('.btn-upload').hide();
+                        thingTemplate.find('.btn-buy').hide();
+                        thingTemplate.find('.btn-buyUse').hide();
+                        thingTemplate.find('.btn-use').show();
+                        thingTemplate.find('.btn-sell').hide();
+                        thingTemplate.find('.btn-download').hide();
+                        thingTemplate.find('.btn-downloadKey').hide();
+                        thingTemplate.find('.thing-template-body').attr('onclick', 'gotoUseCenter("' + App.userid + '","' + App.email + '","' + thingId +'")');
+
+                        thingTemplate.find('.uploadFile').hide();
                         thingTemplate.find('.offerID').hide();
                         thingTemplate.find('.offerPrice').hide();
                         thingTemplate.find('.offerSize').hide();
@@ -710,12 +849,13 @@ App = {
 
 };
 
-$(function () {
-    $(window).load(function () {
-        //var cal = new Calculator();
-        App.init();
-    });
-});
+
+        $(function () {
+            $(window).load(function () {
+                //var cal = new Calculator();
+                App.init();
+            });
+        });
 
 
 /*

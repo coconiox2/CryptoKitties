@@ -5,8 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Data Transcation</title>
-
+    <div align="center"><img src="logo4.png"/></div>
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -17,31 +16,36 @@
     <![endif]-->
 </head>
 <body>
+    
     <div class="container">
         <br/>
+        
+
         <div id="page-head" style="display: none;">
             <div style="position: relative">
-                <div style="position: relative;z-index: 1;">
-                    <div id="account-balance" style="font-size:18px;float: right;">
+                
+                <div style="position: relative;z-index: 2">
+                    <div id="account-balance" style="font-size:18px;float: left;">
                         0 ETH
                     </div>
-                    <button type="button" class="btn btn-default" style="float: right;">
+                    <button type="button" class="btn btn-default" style="float: left;">
                         账户余额:
                     </button>
                 </div>
-                <div style="position: relative;z-index: 2">
-                    <div id="current-account" style="font-size:18px;float: right;">
+                <div style="position: relative;z-index: 1">
+                    <div id="current-account" style="font-size:18px;float:left;">
                         0x0
                     </div>
-                    <div class="dropdown" style="float: right;">
+                    <!-- <div class="dropdown" style="float: left;">
                         <button class="btn btn-default dropdown-toggle" type="button" id="menu1" data-toggle="dropdown">
                             切换帐号：
                             <span class="caret"></span>
                         </button>
                         <ul id="menuRow" class="dropdown-menu" role="menu" aria-labelledby="menu1">
-                            <!--menu here-->
+                         
                         </ul>
-                    </div>
+                    </div> -->
+                     <button type="button" class="btn btn-default" style="float: left;" onclick="LogOff()">切换账号</button>
                 </div>
             </div>
             <br/>
@@ -59,6 +63,7 @@
             <button id="trade-center" type="button" class="btn btn-primary">交易大厅</button>
             <button id="upload-center" type="button" class="btn btn-primary">上传中心</button>
             <button id="my-center" type="button" class="btn btn-primary">我的</button>
+            <button id="use-center" type="button" class="btn btn-primary">数据使用中心</button>
             <br/>
             <hr/>
         </div>
@@ -78,6 +83,9 @@
         </div>
     </div>
 
+    
+
+
     <!--thingTemplate-->
     <div id="thing-template" style="display: none;" >
         <div class="thing-template-body col-sm-6 col-md-4 col-lg-3" thing-item-id="0">
@@ -87,10 +95,11 @@
                 </div>
                 <div class="panel-body">
                     <img alt="395x343" data-src="holder.js/395x343" style="width: 100%;height: 220px;background-color: #fff3e1;" class="img-rounded img-center"
-                         src="" data-holder-rendered="true">
+                         src=""  data-holder-rendered="true">
                     <br/><br/>
-                    <strong>ID</strong>: <span class="thing-id">3</span> <br/>
-                    
+                    <strong>ID</strong>: <span class="thing-id">3</span>
+                     <br/>
+                    <br/>
                     
                     <strong>价格</strong>: <span class="thing-price">3</span> ETH 
                     <br/>
@@ -111,7 +120,9 @@
                     
                     <button class="btn btn-danger btn-downloadKey" type="button" style="display: none;">下载钥匙</button>
                     <button class="btn btn-danger btn-upload" type="button" style="display: none;"thing-id="0" thing-price="0" >上传</button>
-                    <button class="btn btn-danger btn-buy" type="button" style="display: none;"thing-id="0" thing-price="0">购买</button>
+                    <button class="btn btn-danger btn-buy" type="button" style="display: none;"thing-id="0" thing-price="0">购买数据包</button>
+                    <button class="btn btn-danger btn-buyUse" type="button" style="display: none;"thing-id="0" thing-price="0">购买使用权</button>
+                    <button class="btn btn-danger btn-use" type="button" style="display: none;"thing-id="0" thing-price="0">数据使用</button>
                     <button class="btn btn-danger btn-sell" type="button" style="display: none;"thing-id="0" thing-price="0">出售</button>
                     <button class="btn btn-danger btn-download" type="button" style="display: none;"thing-id="0" thing-price="0">下载数据</button>
                 </div>
@@ -138,6 +149,16 @@
     <script src="js/base64.js"></script>
     <script src="js/aes.js"></script>
     <script src="js/app.js"></script>
+
+    <script type="text/javascript">
+        function LogOff(){
+            window.location.href = "Login.html";
+        }
+
+        function gotoUseCenter(uid, email, tid) {
+            window.location.href = "UseCenter.html?userid=" + uid + '&email=' + email + '&tid=' + tid;
+        }
+    </script>
 
 </body>
 </html>

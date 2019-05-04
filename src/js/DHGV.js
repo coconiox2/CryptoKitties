@@ -77,7 +77,8 @@ functionn randSparse(n,h){
 class Pk{
 	//生成私钥p
     function generateRandomP(n){
-        var big2 = new BigInteger("2");
+        //var big2 = new BigInteger("2");
+        //p∈(2^n-1,2^n)
         var bign_1 = n.subtract(BigInteger.ONE);
         var randomIntN = big2.pow(bign_1);
         while(1){
@@ -103,8 +104,11 @@ class Pk{
 		this.gam = gam;
 		this.modx0 = modx0;
 		
-		this.p = Pk.generateRandomP(this.eta);		
-		this.x0 = this.p.multiply(RandomOdd(this.gam.subtract(this.eta)));
+		this.p = Pk.generateRandomP(this.eta);	
+		if(modx0){
+			this.x0 = this.p.multiply(RandomOdd(this.gam.subtract(this.eta)));
+		}	
+		
 	},
 
 	//对明文m进行加密
@@ -134,18 +138,36 @@ class Pk{
 
 	//解密 (c mod p) mod 2
 	function decrypt(c){
-		return Pk.noise(c).mod(2);
+		return Pk.noise(c).mod(big2);
 	},
 
 
 	//密文相加
 	function add(c1,c2){
-		return c1.add(c2);
+		if(this.modx0){
+			var temp = c1.add(c2).mod(this.x0).lift();
+			if(temp == BigInteger.ZERO){
+				return temp;
+			}else{
+				return c1.add(c2);
+			}
+		}else{
+			return false;
+		}
 	},
 
 	//密文相乘
 	function mul(c1,c2){
-		return c1.multiply(c2);
+		if(this.modx0){
+			var temp = c1.multiply(c2).mod(this.x0).lift();
+			if(temp == BigInteger.ZERO){
+				return temp;
+			}else{
+				return c1.multiply(c2);
+			}
+		}else{
+			return false;
+		}
 	}
 } 
 
@@ -166,6 +188,11 @@ class Cipertext(){
 
 	function decrypt(){
 		return this.pk.decrypt(this.val);
+	},
+
+	function repr(){
+		console.log('<Ciphertext with m=%s size=%s noise=%s deg=%s>',this.decrypt().toString()
+			,this.val.toString().length(),this.noise().toString().length(),this.degree);
 	},
 
 	function add(x){

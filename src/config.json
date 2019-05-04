@@ -1,9 +1,9 @@
 {
   "debug":true,
-  "dapp_name": "Data Transaction",
+  "dapp_name": "价值数据交易平台",
   "rpc": "http://127.0.0.1:7545",
   "network_id":"5777",
-  "img_url":"https://api.cryptokitties.co/kitties/",
+  "form_url":"https://api.cryptokitties.co/kitties/",
   "img_count":"600000",
   "default_trade_center_things_num": 1,
   "default_upload_center_things_num": 1,
@@ -16,7 +16,9 @@
       "0xe585E9AB4C39180550016F058DcC74624A0aCaBe",
       "0xC81367C94e4426a22CD551431c86Bb395371DB51",
       "0x9aD46dB35Dbc063FD46C3aCAA4D2153EFc74F86C",
-      "0x2716eA6cF11c7Bdb4F611C447c2bC207B20987fd"
+      "0x2716eA6cF11c7Bdb4F611C447c2bC207B20987fd",
+      "0xb1151A1a6bB11FA4eA0A406110a90192a95e4982",
+      "0x313C57e12EC4Ec8Fc8FAb9f8D437c4bDD474BFEb"
     ]
   },
   "level_up_fee":"1"

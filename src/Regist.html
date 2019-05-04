@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Regist</title>
+        <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/Regist.css" rel="stylesheet">
+         <script src="http://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@3.13.0/dist/av-min.js"></script>
+    </head>
+
+    <body>
+        <div class="container">
+            <form class="form-regist">
+                <h2 class="form-regist-heading">注册</h2>
+                <label for="inputEmail" class="sr-only">账号</label>
+                <input type="email" id="inputEmail" class="form-control" placeholder="Email" required autofocus>
+                <label for="inputPassword" class="sr-only">密码</label>
+                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+                <label for="confirmPassword" class="sr-only">确认密码</label>
+                <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" required>
+
+                <button class="btn btn-lg btn-default btn-block" type="button" onclick="regist()">注册</button>
+            </form>
+        </div> <!-- /container -->
+
+        <script>
+            window.onload = function() {
+                // var userid = getQueryVariable('userid')
+
+                var APP_ID = 'Ds3KvcYFAwgQEVt1GVLJaUI6-gzGzoHsz'
+                var APP_KEY = 'wAAzbwzNoLYvRghAgUYrCreI'
+                AV.init({appId:APP_ID, appKey:APP_KEY});
+            }
+
+            function regist() {
+                var email = document.getElementById('inputEmail').value;
+                var password = md5(md5(document.getElementById('inputPassword').value));
+                var confirm = md5(md5(document.getElementById('confirmPassword').value));
+
+                if(password != confirm) {
+                    alert('两次输入的密码不一致');
+                    return;
+                }
+                
+                var user = new AV.User();
+                user.setUsername(email);
+                user.setEmail(email);
+                user.setPassword(password);
+
+                var query = new AV.Query('AllUserID');
+                query.equalTo('hasused', false);
+                query.find().then(function(results) {
+                    if(results.length == 0) {
+                        alert('注册失败')
+                        return;
+                    }
+
+                    var userid = results[0];
+                    userid.set('hasused', true)
+                    userid.save();
+                    user.set('userid', userid.get('userid'))
+                    user.signUp().then(function(loginedUser) {
+                        //jump
+                        var userid = loginedUser.get('userid');
+                        var email = loginedUser.get('email');
+                        window.location.href = "index.html?userid=" + userid + '&email=' + email;
+                    }, function (error) {
+                        alert(JSON.stringify(error))
+                    });
+                }, function(error){
+                    alert(JSON.stringify(error))
+                });
+            }
+        </script>
+    </body>
+</html>

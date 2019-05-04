@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Login</title>
+        <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/Login.css" rel="stylesheet">
+        <script src="http://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.min.js"></script>
+        <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@3.13.0/dist/av-min.js"></script>
+    </head>
+
+    <body>
+        <div class="container">
+            <form class="form-login">
+                <h2 class="form-login-heading">登录</h2>
+                <label for="inputEmail" class="sr-only">账号</label>
+                <input type="email" id="inputEmail" class="form-control" placeholder="Email" required autofocus>
+                <label for="inputPassword" class="sr-only">密码</label>
+                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+
+                <button class="btn btn-lg btn-primary btn-block" type="button" onclick="login()">登录</button>
+                <button class="btn btn-lg btn-default btn-block" type="button" onclick="goRegist()">注册</button>
+            </form>
+        </div> <!-- /container -->
+
+        <script>
+            window.onload = function() {
+                // var userid = getQueryVariable('userid')
+                // var email = getQueryVariable('email')
+
+                var APP_ID = 'Ds3KvcYFAwgQEVt1GVLJaUI6-gzGzoHsz'
+                var APP_KEY = 'wAAzbwzNoLYvRghAgUYrCreI'
+                AV.init({appId:APP_ID, appKey:APP_KEY});
+            }
+
+            function getQueryVariable(variable)
+            {
+                var query = window.location.search.substring(1);
+                var vars = query.split("&");
+                for (var i=0;i<vars.length;i++) {
+                        var pair = vars[i].split("=");
+                        if(pair[0] == variable){return pair[1];}
+                }
+                return(false);
+            }
+
+            function login() {
+                var email = document.getElementById('inputEmail').value;
+                var password = md5(md5(document.getElementById('inputPassword').value));
+                
+                AV.User.loginWithEmail(email, password).then(function(loginedUser) {
+                    var userid = loginedUser.get('userid');
+                    var email = loginedUser.get('email');
+                    window.location.href = "index.html?userid=" + userid + '&email=' + email;
+                }, function(error) {
+                    alert(JSON.stringify(error));
+                })
+            }
+
+            function goRegist() {
+                window.location.href = "Regist.html"
+            }
+        </script>
+    </body>
+</html>
