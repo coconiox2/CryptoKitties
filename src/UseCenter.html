@@ -4,10 +4,108 @@
 	<title></title>
 	<link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
+
 <body>
+
+	<form class="form-horizontal">
+    <fieldset>
+      <div id="legend" class="">
+        <legend class=""></legend>
+      </div>
+    
+
+    <div class="control-group">
+          <label class="control-label" >请选择将使用的数据列</label>
+
+          <!-- Multiple Checkboxes -->
+          <div class="controls" id = "selectLabel">
+            
+            <input type="checkbox" value= 1  name ="chk">一月 
+   			
+        	<input type="checkbox" value= 2 name ="chk">二月
+			
+        	<input type="checkbox" value="3" name ="chk"> 三月
+
+			<input type="checkbox" value="4" name ="chk">四月 
+			
+        	<input type="checkbox" value="5" name ="chk"> 五月
+			
+        	<input type="checkbox" value="6" name ="chk">六月 
+		
+        	<input type="checkbox" value="7" name ="chk">七月
+		
+        	<input type="checkbox" value="8" name ="chk">八月
+			
+        	<input type="checkbox" value="9" name ="chk">九月 
+			
+        	<input type="checkbox" value="10" name ="chk">十月
+			
+        	<input type="checkbox" value="11" name ="chk">十一月 
+			
+        	<input type="checkbox" value="12" name ="chk">十二月 
+   			
+          </div>
+
+    </div>
+
+    </fieldset>
+  </form>
+
+
+
+
+	<form class="form-horizontal">
+    <fieldset>
+      <div  class="">
+        <legend class=""></legend>
+      </div>
+    
+
+    <div class="control-group">
+          <label class="control-label" >请选择将使用的数据行</label>
+
+          <!-- Multiple Checkboxes -->
+          <div class="controls" id = "selectLabel2">
+            
+            <input type="checkbox" value= 1  name ="chk2">北京 
+   			
+        	<input type="checkbox" value= 2 name ="chk2">天津
+			
+        	<input type="checkbox" value="3" name ="chk2"> 河北
+
+			<input type="checkbox" value="4" name ="chk2">浙江 
+			
+        	<input type="checkbox" value="5" name ="chk2"> 山东
+			
+        	<input type="checkbox" value="6" name ="chk2">新疆 
+		
+        	<input type="checkbox" value="7" name ="chk2">安徽
+		
+        	<input type="checkbox" value="8" name ="chk2">河南
+			
+        	<input type="checkbox" value="9" name ="chk2">吉林 
+			
+        	<input type="checkbox" value="10" name ="chk2">辽宁
+			
+        	<input type="checkbox" value="11" name ="chk2">山西 
+			
+        	<input type="checkbox" value="12" name ="chk2">陕西 
+   			
+          </div>
+
+    </div>
+
+    </fieldset>
+  </form>
+            
+
+
 	<div class="container bs-docs-section">
 		<input type="file" id="upFile"  placeholder="uploadFileHere">
-	<h1 id='h1' onclick="tap()">开始</h1>
+		<br>
+		<button class="btn btn-danger btn-up" type="button" onclick="tap()">确定</button>
+	<!-- <h1 id='h1' onclick="tap()">开始</h1> -->
 
 <div class="bs-example" data-example-id="bordered-table">
    <table id='tab' class="table table-bordered">
@@ -42,14 +140,30 @@
 	<script type="text/javascript">
 
 		var listdata;
+		
+
         function tap() {
         	 //var cal = new Calculator();
-                var tid = getQueryVariable('tid')
-                App.handleUseThing(tid, function(list) {
+            var tid = getQueryVariable('tid')
+            App.handleUseThing(tid, function(list) {
 
-                	listdata = list;
-                	//parse(list)
-                });
+            	listdata = list;
+            	
+            	//parse(list)
+            });
+            
+            var newdata = new Array();
+            //$('#selectLabel').append($('#selectTemplate').html());
+
+            /*$("input[name='chk']:checked").each(function(){
+  				//alert("checkbox2组选中项的值："+$(this).val());//遍历选中项的值
+  				for(var j =1;j<listdata.length;j++){
+                    	newdata[j] += listdata[j][i]; 
+                    }
+			});*/
+            
+            
+
         }
 
 		function getQueryVariable(variable)

@@ -496,11 +496,16 @@ App = {
                         for(var temp1 = 0;temp1<res[0].length;temp1++){
                             enc[temp1] = new Array();
                         }
-                        for(var temp = 0;temp<res[0].length;temp++){
+                        for(var temp = 1;temp<res[0].length;temp++){
                             enc[0][temp] = res[0][temp];
                         }
+
                         for(var i=1;i<res.length;i++){
-                            for(var j=0;j<res[i].length;j++){
+                            enc[i][0] = res[i][0];
+                        }
+
+                        for(var i=1;i<res.length;i++){
+                            for(var j=1;j<res[i].length;j++){
                                 enc[i][j] = (keys.pub.encrypt(nbv(res[i][j]))).toString();
                             }
                         }
@@ -570,7 +575,7 @@ App = {
                             dataArr[i] = tempArr[i].split("#");
                         }
                         for(var i=1;i<dataArr.length;i++){
-                            for(var j=0;j<dataArr[i].length;j++){
+                            for(var j=1;j<dataArr[i].length;j++){
                                 dataArr[i][j] = App.decryptFile(dataArr[i][j],priKey);
                             }
                         }
@@ -636,7 +641,7 @@ App = {
                     }
                     
                     for(var i=1;i<dataArr.length;i++){
-                        for(var j=0;j<dataArr[i].length;j++){
+                        for(var j=1;j<dataArr[i].length;j++){
                             dataArr[i][j] = App.decryptFile(dataArr[i][j],priKey);
                         }
                     }
