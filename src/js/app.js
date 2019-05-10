@@ -603,19 +603,29 @@ App = {
         /*let thingId = $(this).attr('thing-id');*/
         //let thingName = $(this).attr('thing-name');
 
-
-
-        
-
-
-
         var keyReader = new FileReader();
         var priKey;
+        
+        //read private key
+        var test = document.getElementById("upFile");
+        //var test = document.getElementsByName("upFile")[len];
+        var priKeyFile = test.files[0];
+        keyReader.onload = function(res){
+            //异步 在文件读取结束后执行
+            console.log('KeyReader onload')
+            //alert(typeof(keyReader.result));
+            //priKey = keyReader.result;
+            priKey = res.target.result;
+   
+            // App.downloadCsvFile(downloadName,dataArr);
+        }
+        keyReader.readAsText(priKeyFile);
+
 
         App.contracts.ThingCore.deployed().then(function (instance) {
             return instance.getThing(parseInt(thingId));
         }).then(function (thing) {
-                console.log(thing);
+                //console.log('depolyed ' + thing);
                 //let downloadName = strConcat(thingName,".txt");
                 
 
@@ -624,40 +634,24 @@ App = {
                 //let downloadP = parseInt(thing[6].valueOf());
                 let fileType = thing[2].valueOf();
 
-                
-                var test = document.getElementById("upFile");
-                //var test = document.getElementsByName("upFile")[len];
-                var priKeyFile = test.files[0];
+                let downloadName = "result.csv";
+                var tempArr = file_content.split("|");
+                var dataArr = new Array();
+                for(var i =0;i<tempArr.length;i++){
+                    dataArr[i] = new Array();
+                    dataArr[i] = tempArr[i].split("#");
+                }
 
-                keyReader.onload = function(){
-                    //alert(typeof(keyReader.result));
-                    priKey = keyReader.result;
-                    let downloadName = "result.csv";
-                    var tempArr = file_content.split("|");
-                    var dataArr = new Array();
-                    for(var i =0;i<tempArr.length;i++){
-                        dataArr[i] = new Array();
-                        dataArr[i] = tempArr[i].split("#");
-                    }
-                    
-                    for(var i=1;i<dataArr.length;i++){
+                for(var i=1;i<dataArr.length;i++){
                         for(var j=1;j<dataArr[i].length;j++){
                             dataArr[i][j] = App.decryptFile(dataArr[i][j],priKey);
                         }
                     }
 
                     callback(dataArr)
-                    // App.downloadCsvFile(downloadName,dataArr);
-
-                }
-                keyReader.readAsText(priKeyFile);
 
                 //alert(typeof(dataArr));
 
-                
-
-                
-        
                 //let downloadContent = App.decryptFile(file_content,downloadP);
                 //App.downloadFile(downloadName,downloadContent);
             }
