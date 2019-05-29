@@ -224,8 +224,8 @@ function rsaDe(_fileContent,_priKey){
 }
 
 
-/*
-var keys = imRsaGenKey(256);
+
+var keys = rsaGenKey(256);
 var key = keys.split(" ");
 var pubkey = new Array();
 var prikey = new Array();
@@ -235,11 +235,11 @@ pubkey[1] = key[1];
 prikey[0] = key[0];
 prikey[1] = key[2];
 
-var en = rsaEn("213",pubkey.join(" "));
+var en = rsaEn("123456789ABCDEF",pubkey.join(" "));
 var de = rsaDe(en,prikey.join(" ")); 
 
-console.log(de);
-*/
+console.log(en);
+
 
 
 
@@ -387,6 +387,7 @@ function imRsaGenKeyCRT4(numBits){
     //const iv = CryptoJS.enc.Utf8.parse('ABCDEF1234123412');   //十六位十六进制数作为密钥偏移量
     //var aesjs = require('aes-js');
     var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+
  
 	// The initialization vector (must be 16 bytes)
 	var iv = [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,35, 36 ];

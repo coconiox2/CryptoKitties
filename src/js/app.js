@@ -452,7 +452,7 @@ App = {
         
         var fileName = readFile.name;
         var fileSize = readFile.size;
-        alert(fileSize);
+        //alert(fileSize);
         var pubKey;
 
         var reader = new FileReader();
@@ -504,11 +504,14 @@ App = {
                             enc[i][0] = res[i][0];
                         }
 
+                        var startTime = new Date().getTime();
                         for(var i=1;i<res.length;i++){
                             for(var j=1;j<res[i].length;j++){
                                 enc[i][j] = (keys.pub.encrypt(nbv(res[i][j]))).toString();
                             }
                         }
+                        var elapsed = new Date().getTime() - startTime;
+                        console.log('enTime:'+elapsed+'ms');
 
                         var fileArr = new Array();
                         for(var i=0;i<res.length;i++){
@@ -574,12 +577,15 @@ App = {
                             dataArr[i] = new Array();
                             dataArr[i] = tempArr[i].split("#");
                         }
+                        var startTime = new Date().getTime(),
+                            elapsed;
                         for(var i=1;i<dataArr.length;i++){
                             for(var j=1;j<dataArr[i].length;j++){
                                 dataArr[i][j] = App.decryptFile(dataArr[i][j],priKey);
                             }
                         }
-
+                        elapsed = new Date().getTime() - startTime;
+                        console.log('deTime'+elapsed+'ms');
                         App.downloadCsvFile(downloadName,dataArr);
                     }
                     keyReader.readAsText(priKeyFile);
